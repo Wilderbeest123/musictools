@@ -1,7 +1,5 @@
-
+#include "jtime.h"
 #include <stdio.h>
-#include <time.h>
-#include "asoundlib.h"
 
 void print_time()
 {
@@ -17,7 +15,7 @@ struct timespec get_time(void)
     return ts;
 }
 
-struct timespec diff_time(struct timespec start, struct timespec end)
+static struct timespec diff_time(struct timespec start, struct timespec end)
 {
     struct timespec ts;
 
@@ -64,13 +62,6 @@ void wait_time(int msecs)
     }
 }
 
-
-typedef struct
-{
-    struct timespec ev;
-    struct timespec period;
-} jtime_t;
-
 void timer_init(jtime_t *t, int period_msec)
 {
     t->period.tv_sec = period_msec/1000;
@@ -91,56 +82,5 @@ int timer_check(jtime_t *t)
         return 1;
     }
 
-    return 0;
-}
-
-void frite_open(snd_rawmidi_t **hin)
-{
-    char *devname = "hw:2,0,0"; //This appears to not change
-    int result = 0;
-
-    result = snd_rawmidi_open(hin, NULL, devname, SND_RAWMIDI_TYPE_HW);
-    printf("Open Result: %i\n", result);
-
-    snd_rawmidi_nonblock(*hin, 1); //1 == NONBLOCK MODE
-}
-
-void frite_read(snd_rawmidi_t *in)
-{
-    ssize_t size;
-    char buf[256];
-    int i;
-
-    size = snd_rawmidi_read(in,(void*)buf,256);
-
-    if(size < 1)
-        return;
-
-    printf("size: %i ", size);
-
-    for(i=0;i<size;i++)
-        printf("%hhx", buf[i]);
-
-    printf("\n");
-}
-
-int main(void)
-{
-    snd_rawmidi_t *handle_in = NULL;
-    jtime_t timer;
-
-    frite_open(&handle_in);
-    timer_init(&timer, 20);
-
-    while(1)
-    {
-        if(timer_check(&timer)){
-            print_time();
-            frite_read(handle_in);
-        }
-    }
-
-    snd_rawmidi_drain(handle_in);
-    snd_rawmidi_close(handle_in);
     return 0;
 }
