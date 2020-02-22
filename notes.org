@@ -1,0 +1,32 @@
+
+
+* i1820
+
+** Sound Output Test
+ https://alsa-project.org/wiki/SoundcardTesting
+
+ Got sound working out of focusrite i1820 with alsa test tool:
+
+ #+begin_src bash
+ aplay -vv Uke2Test.wav
+ #+end_src
+
+** Sound Input Test
+
+ Was able to record into a file using a mic
+
+ #+begin_src bash
+ arecord test.wav -r 48000 -f dat
+ #+end_src
+
+** MIDI Input Test
+
+  Was able to receive midi input using _amidi_:
+
+  #+begin_src bash
+  [jack@jackslinuxlaptop musictools]$ amidi --list-devices
+  Dir Device    Name
+  IO  hw:2,0,0  Scarlett 18i20 USB MIDI 1
+  #+end_src
+
+  
