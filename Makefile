@@ -1,5 +1,8 @@
 SRC_FILES = main.c \
-						jtime.c
+						jtime.c \
+						sound.c \
+						frite.c \
+						keys.c
 
 INCLUDE_DIRS = -I /usr/include/alsa
 
