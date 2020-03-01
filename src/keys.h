@@ -8,7 +8,7 @@ typedef struct
 {
   uint8_t keys[16]; //bitmask representing whether key is pressed
   midi_events_t ev;
-  sinewave_t notes[12]; //Current notes being played
+  tone_t notes[12]; //Current notes being played
 } keyboard_t;
 
 void keys_init(keyboard_t *k);

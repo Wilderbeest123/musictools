@@ -18,6 +18,8 @@ void print_pback_settings(void)
 
 static void frite_print_hw_options(frite_t *hw)
 {
+    uint32_t val;
+
     printf("Supported Memory Access Types: ");
 
     if(snd_pcm_hw_params_test_access(hw->audio_out, hw->params_out, SND_PCM_ACCESS_MMAP_INTERLEAVED) == 0)
@@ -36,6 +38,18 @@ static void frite_print_hw_options(frite_t *hw)
         printf("RW_NONINTERLEAVED ");
 
     printf("\n");
+
+    snd_pcm_hw_params_get_period_time_min(hw->params_out, &val, 0);
+    printf("Period Min Time: %lu\n", val);
+
+    snd_pcm_hw_params_get_period_time_max(hw->params_out, &val, 0);
+    printf("Period Max Time: %lu\n", val);
+
+    snd_pcm_hw_params_get_buffer_time_min(hw->params_out, &val, 0);
+    printf("Buffer Min Time: %lu\n", val);
+
+    snd_pcm_hw_params_get_buffer_time_max(hw->params_out, &val, 0);
+    printf("Buffer Max Time: %lu\n", val);
 }
 
 void frite_open(frite_t *hw, midi_events_t *m)
@@ -59,8 +73,8 @@ void frite_open(frite_t *hw, midi_events_t *m)
     //Audio Out
     hw->pback_out.sample_fmt = SND_PCM_FORMAT_S16;
     hw->pback_out.sample_rate = 44100;
-    hw->pback_out.buffer_time = 500000;
-    hw->pback_out.period_time = 100000;
+    hw->pback_out.buffer_time = 200000;
+    hw->pback_out.period_time = 50000;
 
     int dir; //Uncertain why required, keep here for now
 

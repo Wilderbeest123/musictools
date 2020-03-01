@@ -10,7 +10,7 @@ static void keys_midi_handle_on(void *this, uint8_t note, uint8_t velocity)
     for(i=0;i<12;i++)
     {
         if(k->notes[i].freq == 0.0) {
-            sine_init(&k->notes[i], midi_to_freq(note));
+            tone_init(&k->notes[i], midi_to_freq(note));
             return;
         }
     }
