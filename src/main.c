@@ -6,13 +6,33 @@
 #include "sound.h"
 #include "asoundlib.h"
 #include "keys.h"
+#include "screen.h"
+
+void draw_triangle()
+{
+    GLfloat vVertices[] = { 0.0f, 0.5f, 0.0f,
+                            -1.0f, -1.0f, 0.0f,
+                            1.0f, -1.0f, 0.0f };
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
+    glEnableVertexAttribArray(0);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+}
 
 int main(void)
 {
+    screen_t s;
     keyboard_t k;
     frite_t hw;
     jtime_t timer;
     uint16_t *out_buffer;
+
+    screen_init(&s);
+
+    screen_swap_buffer(&s);
+    draw_triangle();
+    screen_swap_buffer(&s);
 
     keys_init(&k);
     frite_open(&hw, &k.ev);

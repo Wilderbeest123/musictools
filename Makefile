@@ -2,11 +2,12 @@ SRC_FILES = main.c \
 						jtime.c \
 						sound.c \
 						frite.c \
-						keys.c
+						keys.c \
+						screen.c
 
 INCLUDE_DIRS = -I /usr/include/alsa
 
-LIBS = -lasound -lm
+LIBS = -lasound -lm -lwayland-client -lwayland-egl -lEGL -lGLESv2
 
 OBJ_DIR = obj
 OBJS += $(addprefix $(OBJ_DIR)/, $(SRC_FILES:.c=.o))
@@ -31,3 +32,11 @@ debug: app
 .PHONY: pcm
 pcm:
 	gcc examples/pcm.c ${INCLUDE_DIRS} ${LIBS} -o examples/pcm
+
+.PHONY: x11
+x11:
+	gcc examples/x11.c ${INCLUDE_DIRS} ${LIBS} -o examples/x11
+
+.PHONY: wayland
+wayland:
+	gcc examples/wayland.c ${INCLUDE_DIRS} -lwayland-client -lwayland-egl -lEGL -lGLESv2 -o examples/wayland
