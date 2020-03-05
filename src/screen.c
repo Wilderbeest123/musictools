@@ -4,87 +4,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static void registry_handler(void *data, struct wl_registry *registry,
-                             uint32_t id, const char *interface, uint32_t version)
-{
-    printf("Got a registry event for %s id %d\n", interface, id);
-
-    if (strcmp(interface, "wl_compositor") == 0) {
-        ((screen_t *)data)->c = wl_registry_bind(registry, id, &wl_compositor_interface,1);
-    }
-
-    if (strcmp(interface, "wl_shell") == 0) {
-        ((screen_t *)data)->sh = wl_registry_bind(registry, id, &wl_shell_interface, 1);
-    }
-}
-
-static void registry_remover(void *data, struct wl_registry *registry, uint32_t id)
-{
-    printf("Got a registry losing event for %d\n", id);
-}
-
-static void screen_init_wl(screen_t *s)
-{
-    s->l.global = registry_handler;
-    s->l.global_remove = registry_remover;
-    s->d = wl_display_connect(NULL);
-
-    if(s->d == NULL)
-        printf("ERROR: Failed to connect to wayland display\n");
-
-    s->r = wl_display_get_registry(s->d);
-
-    s->c = NULL;
-    wl_registry_add_listener(s->r, &s->l, s);
-    wl_display_dispatch(s->d);
-    wl_display_roundtrip(s->d);
-
-    s->s = wl_compositor_create_surface(s->c);
-    assert(s->s != NULL);
-
-    struct wl_shell_surface* shellSurface = wl_shell_get_shell_surface(s->sh, s->s);
-    wl_shell_surface_set_toplevel(shellSurface);
-}
-
-static void screen_init_egl(screen_t *s)
-{
-    s->egl_w = wl_egl_window_create(s->s, s->width, s->height);
-    assert(s->egl_w != NULL);
-
-    s->egl_d = eglGetDisplay((EGLNativeDisplayType)s->d);
-
-    EGLBoolean initialized = eglInitialize(s->egl_d, NULL, NULL);
-    assert(initialized == EGL_TRUE);
-
-    EGLint number_of_config;
-    EGLint config_attribs[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RED_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_BLUE_SIZE, 8,
-        EGL_ALPHA_SIZE, 8,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-        EGL_NONE
-    };
-
-    static const EGLint context_attribs[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 2,
-        EGL_NONE
-    };
-
-    EGLConfig configs[1];
-    eglChooseConfig(s->egl_d, config_attribs, configs, 1, &number_of_config);
-
-    EGLContext eglContext = eglCreateContext(s->egl_d, configs[0], EGL_NO_CONTEXT, context_attribs);
-
-    s->egl_s = eglCreateWindowSurface(s->egl_d, configs[0], (EGLNativeWindowType)s->egl_w, NULL);
-    assert(s->egl_s != EGL_NO_SURFACE);
-
-    EGLBoolean makeCurrent = eglMakeCurrent(s->egl_d, s->egl_s, s->egl_s, eglContext);
-    assert(makeCurrent == EGL_TRUE);
-
-}
-
 static GLuint compile_shader(GLenum type, const char* shader_src)
 {
     GLuint shader;
@@ -95,7 +14,9 @@ static GLuint compile_shader(GLenum type, const char* shader_src)
     glShaderSource(shader, 1, &shader_src, NULL);
     glCompileShader(shader);
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    assert(compiled);
+
+    if(compiled == 0)
+        printf("Failed to compile shader: %s\n", glGetError());
 
     return shader;
 }
@@ -143,6 +64,58 @@ static void screen_init_opengl(screen_t *s)
 
     glUseProgram(s->gl.p);
     glViewport(0, 0, s->width, s->height);
+
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+static void screen_init_sdl(screen_t *s)
+{
+    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+        printf("Failed to init SDL: %s\n", SDL_GetError());
+
+    //Initialising SDL TTF
+    if(TTF_Init() < 0)
+        printf("Failed to init SDL TTF: %s\n", SDL_GetError());
+
+    //Initialising SDL_Image
+    if(IMG_Init(IMG_INIT_PNG) < 0)
+        printf("Failed to init SDL Image: %s\n", SDL_GetError());
+
+    //Configuring Window Parameters
+    s->sdl.window = SDL_CreateWindow("musictools",
+                                     SDL_WINDOWPOS_CENTERED, //Xscreen position
+                                     SDL_WINDOWPOS_CENTERED, //Yaxis position
+                                     s->width,    //Window size
+                                     s->height,
+                                     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);      //Creation flags
+
+    if(s->sdl.window == NULL)
+        printf("Failed to init window: %s\n", SDL_GetError());
+
+    assert(s->sdl.window);
+
+
+    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+    SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
+    SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
+    SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
+
+    //Use OpenGL 3.0
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+    s->sdl.context = SDL_GL_CreateContext(s->sdl.window);
+
+    if(s->sdl.context == NULL)
+        printf("Failed to init OpenGL Context: %s\n", SDL_GetError());
+
+    if(SDL_GL_SetSwapInterval(1) < 0)
+        printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
+
+    glewExperimental = GL_TRUE;
+    glewInit();
 }
 
 void screen_init(screen_t *s)
@@ -150,14 +123,13 @@ void screen_init(screen_t *s)
     s->width = 320;
     s->height = 240;
 
-    screen_init_wl(s);
-    screen_init_egl(s);
+    screen_init_sdl(s);
     screen_init_opengl(s);
 }
 
 void screen_swap_buffer(screen_t *s)
 {
-    eglSwapBuffers(s->egl_d, s->egl_s);
+    SDL_GL_SwapWindow(s->sdl.window);
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }

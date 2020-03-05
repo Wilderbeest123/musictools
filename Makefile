@@ -5,9 +5,11 @@ SRC_FILES = main.c \
 						keys.c \
 						screen.c
 
-INCLUDE_DIRS = -I /usr/include/alsa
+INCLUDE_DIRS = -I /usr/include/alsa \
+							 -I/usr/local/include/SDL2
 
-LIBS = -lasound -lm -lwayland-client -lwayland-egl -lEGL -lGLESv2
+LIBS = -lasound -lm -lGLEW -lGL \
+			 -lSDL2 -lSDL2_ttf -lSDL2_image
 
 OBJ_DIR = obj
 OBJS += $(addprefix $(OBJ_DIR)/, $(SRC_FILES:.c=.o))

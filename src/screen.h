@@ -1,28 +1,21 @@
 #ifndef SCREEN_H_
 #define SCREEN_H_
 
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <wayland-client.h>
-#include <wayland-egl.h>
-
+#include <GL/glew.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_ttf.h>
+#include <SDL_image.h>
 
 typedef struct
 {
   int width;
   int height;
 
-  struct wl_display *d;
-  struct wl_surface *s;
-  struct wl_registry *r;
-  struct wl_registry_listener l;
-  struct wl_compositor *c;
-  struct wl_shell *sh;
-
-  struct wl_egl_window *egl_w;  /* Interface between wayland and EGL */
-
-  EGLDisplay egl_d;
-  EGLSurface egl_s;
+  struct {
+    SDL_Window *window;
+    SDL_GLContext context;
+  } sdl;
 
   struct {
     GLuint p;

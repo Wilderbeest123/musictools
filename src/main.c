@@ -16,7 +16,6 @@ void draw_triangle()
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
     glEnableVertexAttribArray(0);
-
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -29,8 +28,6 @@ int main(void)
     uint16_t *out_buffer;
 
     screen_init(&s);
-
-    screen_swap_buffer(&s);
     draw_triangle();
     screen_swap_buffer(&s);
 
