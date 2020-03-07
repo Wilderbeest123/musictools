@@ -22,14 +22,21 @@ void draw_triangle()
 int main(void)
 {
     screen_t s;
-    keyboard_t k;
-    frite_t hw;
-    jtime_t timer;
-    uint16_t *out_buffer;
 
     screen_init(&s);
     draw_triangle();
     screen_swap_buffer(&s);
+
+    wait_time(4000);
+    return 0;
+}
+
+void music_loop(void)
+{
+    keyboard_t k;
+    frite_t hw;
+    jtime_t timer;
+    uint16_t *out_buffer;
 
     keys_init(&k);
     frite_open(&hw, &k.ev);
@@ -58,5 +65,5 @@ int main(void)
 
     snd_rawmidi_drain(hw.midi_in);
     snd_rawmidi_close(hw.midi_in);
-    return 0;
+
 }

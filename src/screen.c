@@ -4,6 +4,27 @@
 #include <assert.h>
 #include <stdlib.h>
 
+GLenum check_gl(const char *file, int line)
+{
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    {
+        switch (errorCode)
+        {
+        case GL_INVALID_ENUM:                  printf("INVALID_ENUM "); break;
+        case GL_INVALID_VALUE:                 printf("INVALID_VALUE "); break;
+        case GL_INVALID_OPERATION:             printf("INVALID_OPERATION "); break;
+        case GL_STACK_OVERFLOW:                printf("STACK_OVERFLOW "); break;
+        case GL_STACK_UNDERFLOW:               printf("STACK_UNDERFLOW "); break;
+        case GL_OUT_OF_MEMORY:                 printf("OUT_OF_MEMORY "); break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION: printf("INVALID_FRAMEBUFFER_OPERATION "); break;
+        }
+
+        printf("| %s (%i)\n", file, line);
+    }
+    return errorCode;
+}
+
 static GLuint compile_shader(GLenum type, const char* shader_src)
 {
     GLuint shader;
@@ -68,8 +89,49 @@ static void screen_init_opengl(screen_t *s)
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
+static void opengl_dbg_callback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity,
+                                int length, const char *msg, const void *user)
+{
+    printf("gldbg[");
+
+    switch (source)
+    {
+    case GL_DEBUG_SOURCE_API:             printf("API, "); break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   printf("WINSYS, "); break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: printf("COMPILER, "); break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     printf("THRD PTY, "); break;
+    case GL_DEBUG_SOURCE_APPLICATION:     printf("APP, "); break;
+    case GL_DEBUG_SOURCE_OTHER:           printf("OTHER, "); break;
+    };
+
+    switch (severity)
+    {
+    case GL_DEBUG_SEVERITY_HIGH:         printf("HIGH, "); break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       printf("MED, "); break;
+    case GL_DEBUG_SEVERITY_LOW:          printf("LOW, "); break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: printf("NOTICE, "); break;
+    };
+
+    switch (type)
+    {
+    case GL_DEBUG_TYPE_ERROR:               printf("Error"); break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: printf("Deprecated Behaviour"); break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  printf("Undefined Behaviour"); break; 
+    case GL_DEBUG_TYPE_PORTABILITY:         printf("Portability"); break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         printf("Performance"); break;
+    case GL_DEBUG_TYPE_MARKER:              printf("Marker"); break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          printf("Push Group"); break;
+    case GL_DEBUG_TYPE_POP_GROUP:           printf("Pop Group"); break;
+    case GL_DEBUG_TYPE_OTHER:               printf("Other"); break;
+    };
+
+    printf("]: %s\n", msg);
+}
+
 static void screen_init_sdl(screen_t *s)
 {
+    GLint flags;
+
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
         printf("Failed to init SDL: %s\n", SDL_GetError());
 
@@ -94,7 +156,6 @@ static void screen_init_sdl(screen_t *s)
 
     assert(s->sdl.window);
 
-
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
     SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
     SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
@@ -102,9 +163,11 @@ static void screen_init_sdl(screen_t *s)
     SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
     SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
 
-    //Use OpenGL 3.0
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 5);
+
+    //Uncomment for troubleshooting
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
     s->sdl.context = SDL_GL_CreateContext(s->sdl.window);
 
@@ -116,6 +179,21 @@ static void screen_init_sdl(screen_t *s)
 
     glewExperimental = GL_TRUE;
     glewInit();
+    glGetError(); //Here to handle known GL_INVALID_ENUM bug with glewInit
+
+    //Get GL Context flags
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        printf("NOTE: GL DEBUG ENABLED\n");
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(opengl_dbg_callback, NULL);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+    }
+
+    assert(glewIsSupported("GL_VERSION_4_5"));
 }
 
 void screen_init(screen_t *s)

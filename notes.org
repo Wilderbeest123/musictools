@@ -42,3 +42,60 @@ https://www.alsa-project.org/alsa-doc/alsa-lib/
 
 
 ./pcm -D default
+
+
+* X11
+
+* EGL
+
+** Surface
+
+   An off-screen buffer allocated by EGL.
+
+   
+
+* OpenGL
+** What is OpenGL ES?
+   This is _OpenGL for Embedded Systems_.
+
+** What is GLEW?
+   OpenGL Extension Wrangler Library (GLEW)
+
+   Library that helps in querying and loading OpenGL extensions.
+
+   Extensions being additional functionality provided by vendors.
+
+   Extensions being new functions/constants.
+
+   GLEW is used to access the modern OpenGL API functions (version 3.2 up to latest version)
+
+   GLEW does run time loading of the OpenGL API. 
+
+** What Options for OpenGL?
+*** GLEW with Utility Library (SDL, GLUT)
+*** GLFW
+
+** GLUT
+   Library used to perform system-level I/O with the host operating system.
+
+   Functions performed include window definition, 
+   window control, and monitoring of keyboard and mouse input.
+
+   GLUT is really old and is not actively maintained.
+
+   Carried on now by freeglut
+
+** GLFW?
+   Another utility library for use with OpenGL.
+
+   Provides programmers with the ability to:
+   create and manage windows and OpenGL contexts, handle joystick, keyboard and mouse input.
+** What OpenGL versions are supported?
+   #+begin_src bash
+    glxinfo | grep "version"
+   #+end_src
+
+   #+begin_src c
+   if(glewIsSupported("GL_VERSION_4_5"))
+   printf("Supported\n");
+   #+end_src

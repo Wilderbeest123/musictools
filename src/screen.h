@@ -27,4 +27,7 @@ typedef struct
 void screen_init(screen_t *s);
 void screen_swap_buffer(screen_t *s);
 
+GLenum check_gl(const char *file, int line);
+#define gle() check_gl(__FILE__, __LINE__)
+
 #endif  /* SCREEN_H_ */
