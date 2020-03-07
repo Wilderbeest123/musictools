@@ -99,3 +99,54 @@ https://www.alsa-project.org/alsa-doc/alsa-lib/
    if(glewIsSupported("GL_VERSION_4_5"))
    printf("Supported\n");
    #+end_src
+
+
+** VB0 (Vertex Buffer Object)
+   Memory used to hold vertex array data.
+
+
+** VAO
+   
+** Concepts
+*** Vertex Attributes
+    Are used to communicate from "outside" to the vertex shader.
+
+    These are defined at the top of your vertex shader code.
+
+    #+begin_src glsl
+    in vec4 vPosition;
+    #+end_src
+
+** Reference
+*** glGenBuffers
+    generates new memory buffers on GPU
+
+    returns set of unique IDs for those memory buffers.
+
+*** glBindBuffer
+    Setup buffer of ID X to be the next buffer used by OpenGL's State Machine.
+
+    Also need to specify the type of contents which exist in this buffer ( GL_ARRAY_BUFFER, GL_TEXTURE_BUFFER, etc.)
+
+*** glBufferData
+    Transfer data from the CPU into the memory location of the currently bound buffer.
+
+*** glGenVertexArrays
+    generates new vertex arrays on GPU
+   
+    returns set of unique IDs for those vertex arrays.
+
+*** glBindVertexArray
+    Set vertex array of ID X to be the next vertex array used by OpenGL's State Machine.
+
+*** glEnableVertexAttribArray
+    Enable the generic vertex attribute array specified by index.
+   
+    I believe the attribute array is the variable defined in the vertex shader.
+
+*** glVertexAttribPointer
+
+    specify the location and data format of the array of generic vertex attributes at index index to use when rendering
+
+** GLSL
+   

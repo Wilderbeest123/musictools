@@ -8,14 +8,26 @@
 #include "keys.h"
 #include "screen.h"
 
-void draw_triangle()
+void draw_triangle(screen_t *s)
 {
     GLfloat vVertices[] = { 0.0f, 0.5f, 0.0f,
                             -1.0f, -1.0f, 0.0f,
                             1.0f, -1.0f, 0.0f };
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
-    glEnableVertexAttribArray(0);
+    //Init VBO
+    GLuint vbo = 0;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GL_FLOAT), vVertices, GL_STATIC_DRAW);
+
+    //Init VAO
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glEnableVertexAttribArray(s->gl.pos);
+    glVertexAttribPointer(s->gl.pos, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -24,7 +36,7 @@ int main(void)
     screen_t s;
 
     screen_init(&s);
-    draw_triangle();
+    draw_triangle(&s);
     screen_swap_buffer(&s);
 
     wait_time(4000);

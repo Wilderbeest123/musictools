@@ -19,7 +19,7 @@ typedef struct
 
   struct {
     GLuint p;
-    GLuint pos;
+    GLuint pos;                 /* Reference to pos attribute in vertex shader */
     GLuint color;
   } gl;
 } screen_t;
