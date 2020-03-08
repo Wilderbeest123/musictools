@@ -1,12 +1,14 @@
 #include "shapes.h"
 #include <cglm/cglm.h>
 
-static void shape_init_vcolor(GLuint *vbo, color_t c, int len)
+static shapes_t *gShapes;
+
+static void model_init_vcolor(GLuint *vbo, gl_color_t c, int len)
 {
     int i;
-    color_t *vcolor;
+    gl_color_t *vcolor;
 
-    vcolor = malloc(sizeof(color_t) * len);
+    vcolor = malloc(sizeof(gl_color_t) * len);
 
     for(i=0; i<len; i++)
         vcolor[i] = c;
@@ -14,7 +16,7 @@ static void shape_init_vcolor(GLuint *vbo, color_t c, int len)
     //Init vertex color buffer
     glGenBuffers(1, vbo);
     glBindBuffer(GL_ARRAY_BUFFER, *vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(color_t)*len, vcolor, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_color_t)*len, vcolor, GL_STATIC_DRAW);
 
     //Map vcolor VBO to binded VAO
     glEnableVertexAttribArray(VERT_ATTR_COLOR);
@@ -23,7 +25,7 @@ static void shape_init_vcolor(GLuint *vbo, color_t c, int len)
     free(vcolor);
 }
 
-static void shape_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
+static void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
 {
     //Init vertex pos buffer
     glGenBuffers(1, vbo);
@@ -35,9 +37,9 @@ static void shape_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
     glVertexAttribPointer(VERT_ATTR_POS, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-shape_t shape_init_square(color_t c)
+static gl_model_t model_init_square(gl_color_t c)
 {
-    shape_t s = SHAPE_INIT();
+    gl_model_t s = MODEL_INIT();
 
     GLfloat vpos[] = { -1.0f, 1.0f, 0.0f,
                        1.0f, 1.0f, 0.0f,
@@ -54,8 +56,8 @@ shape_t shape_init_square(color_t c)
     glBindVertexArray(s.vao);
 
     //Init VBOs
-    shape_init_vpos(&s.vpos, vpos, sizeof(vpos));
-    shape_init_vcolor(&s.vcolor, c, s.v_len);
+    model_init_vpos(&s.vpos, vpos, sizeof(vpos));
+    model_init_vcolor(&s.vcolor, c, s.v_len);
 
     //Init EBO
     glGenBuffers(1, &s.ebo);
@@ -66,9 +68,9 @@ shape_t shape_init_square(color_t c)
     return s;
 }
 
-shape_t shape_init_triangle(color_t c)
+static gl_model_t model_init_triangle(gl_color_t c)
 {
-    shape_t s = SHAPE_INIT();
+    gl_model_t s = MODEL_INIT();
 
     GLfloat vpos[] = { 0.0f, 0.5f, 0.0f,
                        -1.0f, -1.0f, 0.0f,
@@ -80,17 +82,15 @@ shape_t shape_init_triangle(color_t c)
     glBindVertexArray(s.vao);
 
     //Init VBOs
-    shape_init_vpos(&s.vpos, vpos, sizeof(vpos));
-    shape_init_vcolor(&s.vcolor, c, s.v_len);
+    model_init_vpos(&s.vpos, vpos, sizeof(vpos));
+    model_init_vcolor(&s.vcolor, c, s.v_len);
 
     glBindVertexArray(0); //Unbind VAO
     return s;
 }
 
-static void shape_model_uniform(int x, int y, int width, int height)
+static void update_model_uniform(int x, int y, int width, int height)
 {
-    gl_program_t gl = gl_program();
-
     vec3 pos = { x, y, 0 };
     vec3 scale = { width, height, 0 };
     mat4 ortho;
@@ -99,19 +99,37 @@ static void shape_model_uniform(int x, int y, int width, int height)
     glm_translate(ortho, pos);
     glm_scale(ortho, scale);
 
-    glProgramUniformMatrix4fv(gl.p, VERT_UNIFORM_MODEL, 1, GL_FALSE, (GLfloat*)ortho);
+    glProgramUniformMatrix4fv(gShapes->gl->p, VERT_UNIFORM_MODEL, 1, GL_FALSE, (GLfloat*)ortho);
 }
 
-void shape_draw(shape_t *s, int x, int y, int width, int height)
+static inline void model_draw(gl_model_t s, int x, int y, int width, int height)
 {
-    glBindVertexArray(s->vao);
+    glBindVertexArray(s.vao);
 
-    shape_model_uniform(x, y, width, height);
+    update_model_uniform(x, y, width, height);
 
-    if(s->ebo) {
-        glDrawElements(GL_TRIANGLES, s->e_len, GL_UNSIGNED_INT, 0);
+    if(s.ebo) {
+        glDrawElements(GL_TRIANGLES, s.e_len, GL_UNSIGNED_INT, 0);
         return;
     }
 
-    glDrawArrays(GL_TRIANGLES, 0, s->v_len);
+    glDrawArrays(GL_TRIANGLES, 0, s.v_len);
+}
+
+void shapes_init(shapes_t *s, gl_color_t c1, gl_color_t c2)
+{
+    s->gl = gl_program();
+    s->square = model_init_square(c1);
+    s->triangle = model_init_triangle(c2);
+    gShapes = s;
+}
+
+void square_draw(int x, int y, int width, int height)
+{
+    model_draw(gShapes->square, x, y, width, height);
+}
+
+void tri_draw(int x, int y, int width, int height)
+{
+    model_draw(gShapes->triangle, x, y, width, height);
 }

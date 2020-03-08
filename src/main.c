@@ -9,7 +9,7 @@
 #include "screen.h"
 #include "shapes.h"
 
-static void draw_shapes(shape_t *s1, shape_t *s2, int mod)
+static void draw_shapes(int mod)
 {
     int i,j;
 
@@ -18,9 +18,9 @@ static void draw_shapes(shape_t *s1, shape_t *s2, int mod)
         for(j=0; j<20; j++)
         {
             if(i%mod)
-                shape_draw(s1, 50*i, 50*j, 20, 20);
+                square_draw(50*i, 50*j, 20, 20);
             else
-                shape_draw(s2, 50*i, 50*j, 15, 15);
+                tri_draw(50*i, 50*j, 15, 15);
         }
     }
 }
@@ -30,11 +30,10 @@ int main(void)
     screen_t s;
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    color_t c1 = COLOR_INIT(127,127,255,255);
-    color_t c2 = COLOR_INIT(255,127,255,255);
-
-    shape_t sq = shape_init_square(c1);
-    shape_t tri = shape_init_triangle(c2);
+    shapes_t sh;
+    gl_color_t c1 = COLOR_INIT(127,127,255,255);
+    gl_color_t c2 = COLOR_INIT(255,127,255,255);
+    shapes_init(&sh, c1, c2);
 
     int i=0;
     int j=2;
@@ -46,11 +45,11 @@ int main(void)
     {
         if(timer_check(&timer)){
             if(i==0) {
-                draw_shapes(&sq, &tri, j);
+                draw_shapes(j);
                 i++;
             }
             else {
-                draw_shapes(&tri, &sq, j);
+                draw_shapes(j);
                 i=0;
             }
 

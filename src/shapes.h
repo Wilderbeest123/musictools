@@ -9,7 +9,7 @@ typedef struct
     GLfloat g;
     GLfloat b;
     GLfloat a;
-} color_t;
+} gl_color_t;
 
 #define COLOR_INIT(R,G,B,A) \
     {.r=(GLfloat)R/255.0, .g=(GLfloat)G/255.0, .b=(GLfloat)B/255.0, .a=(GLfloat)A/255.0}
@@ -24,12 +24,19 @@ typedef struct
     int v_len;                   /* No. of vertices in VBO */
     int e_len;                   /* No. of elements in EBO */
 
-} shape_t;
+} gl_model_t;
 
-#define SHAPE_INIT() { .vao=0, .vpos=0, .vcolor=0, .ebo=0, .e_len=0, .v_len=0 }
+#define MODEL_INIT() { .vao=0, .vpos=0, .vcolor=0, .ebo=0, .e_len=0, .v_len=0 }
 
-shape_t shape_init_square(color_t c);
-shape_t shape_init_triangle(color_t c);
-void shape_draw(shape_t *s, int x, int y, int width, int height);
+typedef struct
+{
+    gl_program_t *gl;
+    gl_model_t square;
+    gl_model_t triangle;
+} shapes_t;
+
+void shapes_init(shapes_t *s, gl_color_t c1, gl_color_t c2);
+void square_draw(int x, int y, int width, int height);
+void tri_draw(int x, int y, int width, int height);
 
 #endif  /* SHAPES_H_ */

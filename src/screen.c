@@ -4,11 +4,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static gl_program_t* globalGL;
+static gl_program_t* gGL;
 
-gl_program_t gl_program(void)
+gl_program_t* gl_program(void)
 {
-    return *globalGL;
+    return gGL;
 }
 
 GLenum check_gl(const char *file, int line)
