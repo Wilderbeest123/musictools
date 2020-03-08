@@ -7,8 +7,19 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 
+//VERTEX SHADER LOCATIONS
 #define VERT_ATTR_POS 0
 #define VERT_ATTR_COLOR 1
+#define VERT_UNIFORM_MODEL 2
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
+typedef struct {
+  GLuint p;                    /* Reference to the OpenGL program */
+  GLuint pos;                 /* Reference to pos attribute in vertex shader */
+  GLuint color;               /* Reference to color attribute in vertex shader */
+} gl_program_t;
 
 typedef struct
 {
@@ -20,15 +31,14 @@ typedef struct
     SDL_GLContext context;
   } sdl;
 
-  struct {
-    GLuint p;
-    GLuint pos;                 /* Reference to pos attribute in vertex shader */
-    GLuint color;
-  } gl;
+  gl_program_t gl;
+
 } screen_t;
 
-void screen_init(screen_t *s);
+void screen_init(screen_t *s, int width, int height);
 void screen_swap_buffer(screen_t *s);
+
+gl_program_t gl_program(void);
 
 GLenum check_gl(const char *file, int line);
 #define gle() check_gl(__FILE__, __LINE__)

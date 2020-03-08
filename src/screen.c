@@ -4,6 +4,13 @@
 #include <assert.h>
 #include <stdlib.h>
 
+static gl_program_t* globalGL;
+
+gl_program_t gl_program(void)
+{
+    return *globalGL;
+}
+
 GLenum check_gl(const char *file, int line)
 {
     GLenum errorCode;
@@ -82,6 +89,8 @@ static void screen_init_opengl(screen_t *s)
     GLint linked;
     glGetProgramiv(s->gl.p, GL_LINK_STATUS, &linked);
     assert(linked);
+
+    globalGL = (gl_program_t*)&s->gl.p;
 
     glUseProgram(s->gl.p);
     glViewport(0, 0, s->width, s->height);
@@ -199,10 +208,10 @@ static void screen_init_sdl(screen_t *s)
     assert(glewIsSupported("GL_VERSION_4_5"));
 }
 
-void screen_init(screen_t *s)
+void screen_init(screen_t *s, int width, int height)
 {
-    s->width = 320;
-    s->height = 240;
+    s->width = width;
+    s->height = height;
 
     screen_init_sdl(s);
     screen_init_opengl(s);
@@ -211,6 +220,6 @@ void screen_init(screen_t *s)
 void screen_swap_buffer(screen_t *s)
 {
     SDL_GL_SwapWindow(s->sdl.window);
-    glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }

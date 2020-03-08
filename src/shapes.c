@@ -1,4 +1,5 @@
 #include "shapes.h"
+#include <cglm/cglm.h>
 
 static void shape_init_vcolor(GLuint *vbo, color_t c, int len)
 {
@@ -38,10 +39,10 @@ shape_t shape_init_square(color_t c)
 {
     shape_t s = SHAPE_INIT();
 
-    GLfloat vpos[] = { -0.5f, 0.5f, 0.0f,
-                       0.5f, 0.5f, 0.0f,
-                       0.5f, -0.5f, 0.0f,
-                       -0.5f, -0.5f, 0.0f };
+    GLfloat vpos[] = { -1.0f, 1.0f, 0.0f,
+                       1.0f, 1.0f, 0.0f,
+                       1.0f, -1.0f, 0.0f,
+                       -1.0f, -1.0f, 0.0f };
 
     GLuint elements[] = { 0, 1, 2, 2, 3, 0 };
 
@@ -86,9 +87,26 @@ shape_t shape_init_triangle(color_t c)
     return s;
 }
 
-void shape_draw(shape_t *s)
+static void shape_model_uniform(int x, int y, int width, int height)
+{
+    gl_program_t gl = gl_program();
+
+    vec3 pos = { x, y, 0 };
+    vec3 scale = { width, height, 0 };
+    mat4 ortho;
+
+    glm_ortho(0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 0.0, 1.0, ortho);
+    glm_translate(ortho, pos);
+    glm_scale(ortho, scale);
+
+    glProgramUniformMatrix4fv(gl.p, VERT_UNIFORM_MODEL, 1, GL_FALSE, (GLfloat*)ortho);
+}
+
+void shape_draw(shape_t *s, int x, int y, int width, int height)
 {
     glBindVertexArray(s->vao);
+
+    shape_model_uniform(x, y, width, height);
 
     if(s->ebo) {
         glDrawElements(GL_TRIANGLES, s->e_len, GL_UNSIGNED_INT, 0);

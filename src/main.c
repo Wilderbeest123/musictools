@@ -9,23 +9,61 @@
 #include "screen.h"
 #include "shapes.h"
 
-//#include <cglm/cglm.h>
+static void draw_shapes(shape_t *s1, shape_t *s2, int mod)
+{
+    int i,j;
+
+    for(i=0; i<20; i++)
+    {
+        for(j=0; j<20; j++)
+        {
+            if(i%mod)
+                shape_draw(s1, 50*i, 50*j, 20, 20);
+            else
+                shape_draw(s2, 50*i, 50*j, 15, 15);
+        }
+    }
+}
 
 int main(void)
 {
     screen_t s;
-    screen_init(&s);
+    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    color_t c = COLOR_INIT(127,127,255,255);
+    color_t c1 = COLOR_INIT(127,127,255,255);
+    color_t c2 = COLOR_INIT(255,127,255,255);
 
-    shape_t sq = shape_init_square(c);
-    shape_t tri = shape_init_triangle(c);
-    shape_draw(&sq);
-    shape_draw(&tri);
+    shape_t sq = shape_init_square(c1);
+    shape_t tri = shape_init_triangle(c2);
 
-    screen_swap_buffer(&s);
+    int i=0;
+    int j=2;
 
-    wait_time(4000);
+    jtime_t timer;
+    timer_init(&timer, 400);
+
+    while(1)
+    {
+        if(timer_check(&timer)){
+            if(i==0) {
+                draw_shapes(&sq, &tri, j);
+                i++;
+            }
+            else {
+                draw_shapes(&tri, &sq, j);
+                i=0;
+            }
+
+            if(j==4)
+                j=1;
+
+            j++;
+            screen_swap_buffer(&s);
+        }
+
+        usleep(100);
+    }
+
     return 0;
 }
 
@@ -63,5 +101,4 @@ void music_loop(void)
 
     snd_rawmidi_drain(hw.midi_in);
     snd_rawmidi_close(hw.midi_in);
-
 }

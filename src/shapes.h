@@ -30,6 +30,6 @@ typedef struct
 
 shape_t shape_init_square(color_t c);
 shape_t shape_init_triangle(color_t c);
-void shape_draw(shape_t *s);
+void shape_draw(shape_t *s, int x, int y, int width, int height);
 
 #endif  /* SHAPES_H_ */
