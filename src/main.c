@@ -9,13 +9,17 @@
 #include "screen.h"
 #include "shapes.h"
 
+//#include <cglm/cglm.h>
+
 int main(void)
 {
     screen_t s;
     screen_init(&s);
 
-    shape_t sq = shape_init_square();
-    shape_t tri = shape_init_triangle();
+    color_t c = COLOR_INIT(127,127,255,255);
+
+    shape_t sq = shape_init_square(c);
+    shape_t tri = shape_init_triangle(c);
     shape_draw(&sq);
     shape_draw(&tri);
 

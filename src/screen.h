@@ -8,6 +8,7 @@
 #include <SDL_image.h>
 
 #define VERT_ATTR_POS 0
+#define VERT_ATTR_COLOR 1
 
 typedef struct
 {

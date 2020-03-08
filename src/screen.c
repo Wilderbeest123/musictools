@@ -87,6 +87,7 @@ static void screen_init_opengl(screen_t *s)
     glViewport(0, 0, s->width, s->height);
 
     s->gl.pos = VERT_ATTR_POS;
+    s->gl.color = VERT_ATTR_COLOR;
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
