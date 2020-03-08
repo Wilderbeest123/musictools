@@ -101,11 +101,11 @@ https://www.alsa-project.org/alsa-doc/alsa-lib/
    #+end_src
 
 
-** VB0 (Vertex Buffer Object)
-   Memory used to hold vertex array data.
+** GLM
+   OpenGL Mathematics (GLM) is a header only C++ mathematics library for graphics software
 
-
-** VAO
+** GLM for C
+   https://github.com/recp/cglm
    
 ** Concepts
 *** Vertex Attributes
@@ -116,6 +116,25 @@ https://www.alsa-project.org/alsa-doc/alsa-lib/
     #+begin_src glsl
     in vec4 vPosition;
     #+end_src
+
+*** VB0 (Vertex Buffer Object)
+    Memory buffer in the high speed memory of your video card designed to hold information about vertices.
+
+*** VAO (Vertex Array Object)
+    object which contains references to one or more Vertex Buffer Objects
+
+    Designed to store the information for a complete rendered object.
+
+    VAOs contains a list of attribute pointers.
+
+    A VAO also keeps track of EBO bindings.
+
+    The last EBO that gets bound while a VAO is bound, is stored as the VAO's EBO.
+
+*** EBO (Element Buffer Objects)
+    An EBO is a buffer, just like a VBO, that stores indices that OpenGL uses 
+    to decide what vertices to draw.
+
 
 ** Reference
 *** glGenBuffers
@@ -145,8 +164,12 @@ https://www.alsa-project.org/alsa-doc/alsa-lib/
     I believe the attribute array is the variable defined in the vertex shader.
 
 *** glVertexAttribPointer
+    This functions states where an attribute index gets its array data from.
+
 
     specify the location and data format of the array of generic vertex attributes at index index to use when rendering
 
+
+    
 ** GLSL
    

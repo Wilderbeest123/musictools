@@ -86,8 +86,7 @@ static void screen_init_opengl(screen_t *s)
     glUseProgram(s->gl.p);
     glViewport(0, 0, s->width, s->height);
 
-    //Init 'pos' vertex attribute
-    glBindAttribLocation(s->gl.p, s->gl.pos, "pos");
+    s->gl.pos = VERT_ATTR_POS;
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }

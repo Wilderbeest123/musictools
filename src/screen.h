@@ -7,6 +7,8 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 
+#define VERT_ATTR_POS 0
+
 typedef struct
 {
   int width;

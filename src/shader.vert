@@ -1,6 +1,6 @@
 #version 450 core
 
-in vec4 pos;
+layout(location = 0) in vec4 pos;
 
 void main()
 {
