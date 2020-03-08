@@ -10,15 +10,15 @@
 
 void draw_triangle(screen_t *s)
 {
-    GLfloat vVertices[] = { 0.0f, 0.5f, 0.0f,
-                            -1.0f, -1.0f, 0.0f,
-                            1.0f, -1.0f, 0.0f };
+    GLfloat vertices[] = { 0.0f, 0.5f, 0.0f,
+                           -1.0f, -1.0f, 0.0f,
+                           1.0f, -1.0f, 0.0f };
 
     //Init VBO
     GLuint vbo = 0;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GL_FLOAT), vVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GL_FLOAT), vertices, GL_STATIC_DRAW);
 
     //Init VAO
     GLuint vao = 0;
@@ -31,12 +31,49 @@ void draw_triangle(screen_t *s)
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void draw_square(screen_t *s)
+{
+
+    GLfloat vertices[] = { -0.5f, 0.5f, 0.0f,
+                           0.5f, 0.5f, 0.0f,
+                           0.5f, -0.5f, 0.0f,
+                           -0.5f, -0.5f, 0.0f };
+
+    //Init VAO
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    //Init VBO
+    GLuint vbo = 0;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) * sizeof(GL_FLOAT), vertices, GL_STATIC_DRAW);
+
+    GLuint elements[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    //Init EBO
+    GLuint ebo = 0;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(s->gl.pos);
+    glVertexAttribPointer(s->gl.pos, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 int main(void)
 {
     screen_t s;
-
     screen_init(&s);
-    draw_triangle(&s);
+
+    //draw_triangle(&s);
+    draw_square(&s);
     screen_swap_buffer(&s);
 
     wait_time(4000);

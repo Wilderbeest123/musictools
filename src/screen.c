@@ -119,7 +119,7 @@ static void opengl_dbg_callback(unsigned int source, unsigned int type, unsigned
     {
     case GL_DEBUG_TYPE_ERROR:               printf("Error"); break;
     case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: printf("Deprecated Behaviour"); break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  printf("Undefined Behaviour"); break; 
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  printf("Undefined Behaviour"); break;
     case GL_DEBUG_TYPE_PORTABILITY:         printf("Portability"); break;
     case GL_DEBUG_TYPE_PERFORMANCE:         printf("Performance"); break;
     case GL_DEBUG_TYPE_MARKER:              printf("Marker"); break;
