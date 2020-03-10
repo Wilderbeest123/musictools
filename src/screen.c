@@ -90,7 +90,7 @@ static void screen_init_opengl(screen_t *s)
     glGetProgramiv(s->gl.p, GL_LINK_STATUS, &linked);
     assert(linked);
 
-    globalGL = (gl_program_t*)&s->gl.p;
+    gGL = (gl_program_t*)&s->gl.p;
 
     glUseProgram(s->gl.p);
     glViewport(0, 0, s->width, s->height);

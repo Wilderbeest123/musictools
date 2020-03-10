@@ -35,8 +35,8 @@ typedef struct
     gl_model_t triangle;
 } shapes_t;
 
-void shapes_init(shapes_t *s, gl_color_t c1, gl_color_t c2);
-void square_draw(int x, int y, int width, int height);
-void tri_draw(int x, int y, int width, int height);
+void shapes_init(shapes_t *s);
+void square_draw(int x, int y, int width, int height, gl_color_t c);
+void tri_draw(int x, int y, int width, int height, gl_color_t c);
 
 #endif  /* SHAPES_H_ */

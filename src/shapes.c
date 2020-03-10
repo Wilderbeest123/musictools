@@ -37,7 +37,7 @@ static void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
     glVertexAttribPointer(VERT_ATTR_POS, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-static gl_model_t model_init_square(gl_color_t c)
+static gl_model_t model_init_square(void)
 {
     gl_model_t s = MODEL_INIT();
 
@@ -55,9 +55,8 @@ static gl_model_t model_init_square(gl_color_t c)
     glGenVertexArrays(1, &s.vao);
     glBindVertexArray(s.vao);
 
-    //Init VBOs
+    //Init VBO
     model_init_vpos(&s.vpos, vpos, sizeof(vpos));
-    model_init_vcolor(&s.vcolor, c, s.v_len);
 
     //Init EBO
     glGenBuffers(1, &s.ebo);
@@ -68,7 +67,7 @@ static gl_model_t model_init_square(gl_color_t c)
     return s;
 }
 
-static gl_model_t model_init_triangle(gl_color_t c)
+static gl_model_t model_init_triangle(void)
 {
     gl_model_t s = MODEL_INIT();
 
@@ -81,15 +80,14 @@ static gl_model_t model_init_triangle(gl_color_t c)
     glGenVertexArrays(1, &s.vao);
     glBindVertexArray(s.vao);
 
-    //Init VBOs
+    //Init VBO
     model_init_vpos(&s.vpos, vpos, sizeof(vpos));
-    model_init_vcolor(&s.vcolor, c, s.v_len);
 
     glBindVertexArray(0); //Unbind VAO
     return s;
 }
 
-static void update_model_uniform(int x, int y, int width, int height)
+static void model_uniform_pos(int x, int y, int width, int height)
 {
     vec3 pos = { x, y, 0 };
     vec3 scale = { width, height, 0 };
@@ -102,11 +100,17 @@ static void update_model_uniform(int x, int y, int width, int height)
     glProgramUniformMatrix4fv(gShapes->gl->p, VERT_UNIFORM_MODEL, 1, GL_FALSE, (GLfloat*)ortho);
 }
 
+static inline void model_uniform_color(gl_color_t c)
+{
+    glProgramUniform1i(gShapes->gl->p, VERT_UNIFORM_COLOR_EN, true);
+    glProgramUniform4fv(gShapes->gl->p, VERT_UNIFORM_COLOR, 1, (GLfloat*)&c);
+}
+
 static inline void model_draw(gl_model_t s, int x, int y, int width, int height)
 {
     glBindVertexArray(s.vao);
 
-    update_model_uniform(x, y, width, height);
+    model_uniform_pos(x, y, width, height);
 
     if(s.ebo) {
         glDrawElements(GL_TRIANGLES, s.e_len, GL_UNSIGNED_INT, 0);
@@ -116,20 +120,22 @@ static inline void model_draw(gl_model_t s, int x, int y, int width, int height)
     glDrawArrays(GL_TRIANGLES, 0, s.v_len);
 }
 
-void shapes_init(shapes_t *s, gl_color_t c1, gl_color_t c2)
+void shapes_init(shapes_t *s)
 {
     s->gl = gl_program();
-    s->square = model_init_square(c1);
-    s->triangle = model_init_triangle(c2);
+    s->square = model_init_square();
+    s->triangle = model_init_triangle();
     gShapes = s;
 }
 
-void square_draw(int x, int y, int width, int height)
+void square_draw(int x, int y, int width, int height, gl_color_t c)
 {
+    model_uniform_color(c);
     model_draw(gShapes->square, x, y, width, height);
 }
 
-void tri_draw(int x, int y, int width, int height)
+void tri_draw(int x, int y, int width, int height, gl_color_t c)
 {
+    model_uniform_color(c);
     model_draw(gShapes->triangle, x, y, width, height);
 }
