@@ -1,6 +1,5 @@
 #include "input.h"
 
-
 void input_init(input_t *i, screen_t *s)
 {
     i->s = s;
@@ -14,10 +13,12 @@ void input_handle(input_t *i)
 {
     SDL_Event ev;
 
+    //Reset input events bitmask
+    i->ev = 0;
+
     while(SDL_PollEvent(&ev))
     {
-        if(ev.type == SDL_WINDOWEVENT)
-        {
+        if(ev.type == SDL_WINDOWEVENT) {
             switch (ev.window.event)
             {
             case SDL_WINDOWEVENT_CLOSE:
@@ -26,11 +27,24 @@ void input_handle(input_t *i)
             }
         }
 
-        if(ev.type == SDL_MOUSEMOTION)
-        {
+        if(ev.type == SDL_MOUSEMOTION) {
+
             i->m.ppos = i->m.pos;
             SDL_GetMouseState(&i->m.pos.x, &i->m.pos.y);
         }
-    }
 
+        if(ev.type == SDL_MOUSEBUTTONDOWN) {
+            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                i->m.lPress = true;
+                i->ev |= INEVENT_LDOWN;
+            }
+        }
+
+        if(ev.type == SDL_MOUSEBUTTONUP) {
+            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                i->m.lPress = false;
+                i->ev |= INEVENT_LUP;
+            }
+        }
+    }
 }

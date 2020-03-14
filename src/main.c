@@ -9,44 +9,19 @@
 #include "screen.h"
 #include "shapes.h"
 #include "input.h"
+#include "box.h"
 
-static void draw_shapes(int mod, gl_color_t c1, gl_color_t c2)
+static void genbox_handle(box_system_t *b, v2 pos, int size)
 {
-    int i,j;
+    gl_color_t c = COLOR_INIT(0,127,255,255);
 
-    for(i=0; i<20; i++)
-    {
-        c1.r = 0.05*i;
-
-        for(j=0; j<20; j++)
-        {
-            c2.g = 0.05*j;
-
-            if(i%mod)
-            {
-                square_draw(50*i, 50*j, 20, 20, c1);
-            }
-            else
-                tri_draw(50*i, 50*j, 15, 15, c2);
-        }
-    }
-}
-
-static void draw_shapes_handle(jtime_t timer, gl_color_t *c1, gl_color_t *c2)
-{
-    if(timer_check(&timer)){
-        if(c1->b >= 1.0)
-            c1->b = 0.0;
-        else
-            c1->b += 0.1;
-
-        if(c2->b <= 0.0)
-            c2->b = 1.0;
-        else
-            c2->b -= 0.1;
-
-        draw_shapes(2, *c1, *c2);
-    }
+    box_t box;
+    box.pos.x = pos.x;
+    box.pos.y = pos.y;
+    box.size.x = size;
+    box.size.y = size;
+    box.col = c;
+    boxsys_append(b, box);
 }
 
 int main(void)
@@ -54,22 +29,25 @@ int main(void)
     screen_t s;
     input_t in;
     shapes_t sh;
+    box_system_t b;
 
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
     input_init(&in, &s);
     shapes_init(&sh);
+    boxsys_init(&b);
 
     jtime_t timer;
     timer_init(&timer, 200);
     gl_color_t c1 = COLOR_INIT(0,127,255,255);
-    gl_color_t c2 = COLOR_INIT(255,0,255,255);
 
     while(s.close == false)
     {
         input_handle(&in);
-        //draw_shapes_handle(timer, &c1, &c2);
-        tri_draw(in.m.pos.x, in.m.pos.y+10, 25, 25, c1);
 
+        if(in.ev & INEVENT_LDOWN)
+            genbox_handle(&b, in.m.pos, 25);
+
+        boxsys_draw(&b);
         screen_swap_buffer(&s);
         usleep(100);
     }
