@@ -4,6 +4,10 @@
 void input_init(input_t *i, screen_t *s)
 {
     i->s = s;
+
+    i->m.pos.x = 0;
+    i->m.pos.y = 0;
+    i->m.ppos = i->m.pos;
 }
 
 void input_handle(input_t *i)
@@ -12,7 +16,7 @@ void input_handle(input_t *i)
 
     while(SDL_PollEvent(&ev))
     {
-        if (ev.type == SDL_WINDOWEVENT)
+        if(ev.type == SDL_WINDOWEVENT)
         {
             switch (ev.window.event)
             {
@@ -20,6 +24,12 @@ void input_handle(input_t *i)
                 i->s->close = true;
                 break;
             }
+        }
+
+        if(ev.type == SDL_MOUSEMOTION)
+        {
+            i->m.ppos = i->m.pos;
+            SDL_GetMouseState(&i->m.pos.x, &i->m.pos.y);
         }
     }
 

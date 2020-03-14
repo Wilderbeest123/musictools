@@ -32,6 +32,23 @@ static void draw_shapes(int mod, gl_color_t c1, gl_color_t c2)
     }
 }
 
+static void draw_shapes_handle(jtime_t timer, gl_color_t *c1, gl_color_t *c2)
+{
+    if(timer_check(&timer)){
+        if(c1->b >= 1.0)
+            c1->b = 0.0;
+        else
+            c1->b += 0.1;
+
+        if(c2->b <= 0.0)
+            c2->b = 1.0;
+        else
+            c2->b -= 0.1;
+
+        draw_shapes(2, *c1, *c2);
+    }
+}
+
 int main(void)
 {
     screen_t s;
@@ -42,45 +59,18 @@ int main(void)
     input_init(&in, &s);
     shapes_init(&sh);
 
-    int i=0;
-    int j=2;
-    gl_color_t c1 = COLOR_INIT(0,127,255,255);
-    gl_color_t c2 = COLOR_INIT(255,0,255,255);
     jtime_t timer;
     timer_init(&timer, 200);
+    gl_color_t c1 = COLOR_INIT(0,127,255,255);
+    gl_color_t c2 = COLOR_INIT(255,0,255,255);
 
     while(s.close == false)
     {
         input_handle(&in);
+        //draw_shapes_handle(timer, &c1, &c2);
+        tri_draw(in.m.pos.x, in.m.pos.y+10, 25, 25, c1);
 
-        if(timer_check(&timer)){
-            if(c1.b >= 1.0)
-                c1.b = 0.0;
-            else
-                c1.b += 0.1;
-
-            if(c2.b <= 0.0)
-                c2.b = 1.0;
-            else
-                c2.b -= 0.1;
-
-            if(i==0) {
-                draw_shapes(j, c1, c2);
-                i++;
-            }
-            else {
-                draw_shapes(j, c1, c2);
-                i=0;
-            }
-
-            if(j==4)
-            {
-                j=1;
-            }
-            j++;
-            screen_swap_buffer(&s);
-        }
-
+        screen_swap_buffer(&s);
         usleep(100);
     }
 

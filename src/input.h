@@ -5,7 +5,14 @@
 
 typedef struct
 {
-  screen_t *s;
+    v2 pos;                     /* Current Mouse Location */
+    v2 ppos;                    /* Previous Mouse Location */
+} mouse_t;
+
+typedef struct
+{
+    screen_t *s;
+    mouse_t m;
 
 } input_t;
 

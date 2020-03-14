@@ -24,6 +24,11 @@ typedef struct {
   GLuint color;               /* Reference to color attribute in vertex shader */
 } gl_program_t;
 
+typedef struct {
+    int x;
+    int y;
+} v2;
+
 typedef struct
 {
   int width;
