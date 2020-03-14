@@ -28,7 +28,6 @@ void input_handle(input_t *i)
         }
 
         if(ev.type == SDL_MOUSEMOTION) {
-
             i->m.ppos = i->m.pos;
             SDL_GetMouseState(&i->m.pos.x, &i->m.pos.y);
         }
@@ -41,7 +40,7 @@ void input_handle(input_t *i)
         }
 
         if(ev.type == SDL_MOUSEBUTTONUP) {
-            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) == 0) {
                 i->m.lPress = false;
                 i->ev |= INEVENT_LUP;
             }

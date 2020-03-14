@@ -11,19 +11,6 @@
 #include "input.h"
 #include "box.h"
 
-static void genbox_handle(box_system_t *b, v2 pos, int size)
-{
-    gl_color_t c = COLOR_INIT(0,127,255,255);
-
-    box_t box;
-    box.pos.x = pos.x;
-    box.pos.y = pos.y;
-    box.size.x = size;
-    box.size.y = size;
-    box.col = c;
-    boxsys_append(b, box);
-}
-
 int main(void)
 {
     screen_t s;
@@ -34,7 +21,7 @@ int main(void)
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
     input_init(&in, &s);
     shapes_init(&sh);
-    boxsys_init(&b);
+    boxsys_init(&b, &in);
 
     jtime_t timer;
     timer_init(&timer, 200);
@@ -43,11 +30,7 @@ int main(void)
     while(s.close == false)
     {
         input_handle(&in);
-
-        if(in.ev & INEVENT_LDOWN)
-            genbox_handle(&b, in.m.pos, 25);
-
-        boxsys_draw(&b);
+        boxsys_update(&b);
         screen_swap_buffer(&s);
         usleep(100);
     }
