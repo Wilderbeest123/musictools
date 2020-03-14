@@ -212,6 +212,7 @@ void screen_init(screen_t *s, int width, int height)
 {
     s->width = width;
     s->height = height;
+    s->close = false;
 
     screen_init_sdl(s);
     screen_init_opengl(s);

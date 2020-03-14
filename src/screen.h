@@ -6,6 +6,7 @@
 #include <SDL_opengl.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <stdbool.h>
 
 //VERTEX SHADER LOCATIONS
 #define VERT_ATTR_POS 0
@@ -27,6 +28,7 @@ typedef struct
 {
   int width;
   int height;
+  bool close;
 
   struct {
     SDL_Window *window;

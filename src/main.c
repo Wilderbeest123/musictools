@@ -8,6 +8,7 @@
 #include "keys.h"
 #include "screen.h"
 #include "shapes.h"
+#include "input.h"
 
 static void draw_shapes(int mod, gl_color_t c1, gl_color_t c2)
 {
@@ -34,9 +35,11 @@ static void draw_shapes(int mod, gl_color_t c1, gl_color_t c2)
 int main(void)
 {
     screen_t s;
-    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
-
+    input_t in;
     shapes_t sh;
+
+    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
+    input_init(&in, &s);
     shapes_init(&sh);
 
     int i=0;
@@ -46,8 +49,10 @@ int main(void)
     jtime_t timer;
     timer_init(&timer, 200);
 
-    while(1)
+    while(s.close == false)
     {
+        input_handle(&in);
+
         if(timer_check(&timer)){
             if(c1.b >= 1.0)
                 c1.b = 0.0;

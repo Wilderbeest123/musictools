@@ -4,7 +4,8 @@ SRC_FILES = main.c \
 						frite.c \
 						keys.c \
 						screen.c \
-						shapes.c
+						shapes.c \
+						input.c
 
 INCLUDE_DIRS = -I /usr/include/alsa \
 							 -I/usr/local/include/SDL2
