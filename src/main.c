@@ -23,16 +23,11 @@ int main(void)
     shapes_init(&sh);
     boxsys_init(&b, &in);
 
-    jtime_t timer;
-    timer_init(&timer, 200);
-    gl_color_t c1 = COLOR_INIT(0,127,255,255);
-
     while(s.close == false)
     {
-        input_handle(&in);
+        input_update(&in);
         boxsys_update(&b);
         screen_swap_buffer(&s);
-        usleep(100);
     }
 
     return 0;

@@ -9,7 +9,7 @@ void input_init(input_t *i, screen_t *s)
     i->m.ppos = i->m.pos;
 }
 
-void input_handle(input_t *i)
+void input_update(input_t *i)
 {
     SDL_Event ev;
 

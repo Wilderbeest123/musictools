@@ -8,9 +8,19 @@
 typedef enum
 {
     BOX_COL_NONE=0x00,
-    BOX_COL_X=0x01,
-    BOX_COL_Y=0x02,
+    BOX_COL_T=0x01,
+    BOX_COL_B=0x02,
+    BOX_COL_L=0x04,
+    BOX_COL_R=0x08,
 } box_col_t;
+
+typedef struct
+{
+  int t;                      /* Top boundary */
+  int b;                      /* Bottom boundary */
+  int l;                      /* Left boundary */
+  int r;                      /* Right boundary */
+} bound_t;
 
 typedef struct
 {

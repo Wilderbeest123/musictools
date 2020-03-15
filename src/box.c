@@ -11,7 +11,7 @@ static inline void box_draw(box_t b)
     square_draw(b.pos.x, b.pos.y, b.size.x, b.size.y, b.col);
 }
 
-static void boxsys_append(box_system_t *b, v2 pos, int size)
+static void boxsys_append(box_system_t *b, v2 pos, v2 size)
 {
     box_t box;
     gl_color_t c = COLOR_INIT(255,127,127,255);
@@ -22,8 +22,7 @@ static void boxsys_append(box_system_t *b, v2 pos, int size)
     }
 
     box.pos = pos;
-    box.size.x = size;
-    box.size.y = size;
+    box.size = size;
     box.col = c;
 
     b->b[b->num] = box;
@@ -35,6 +34,7 @@ static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
     int t,b,l,r;
     box_t *box;
     bool append = true;
+    v2 size;
 
     //printf("X: %d Y: %d\n", pos.x, pos.y);
 
@@ -56,8 +56,11 @@ static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
         }
     }
 
-    if(append)
-        boxsys_append(bsys, bsys->in->m.pos, 30);
+    if(append) {
+        size.x = 80;
+        size.y = 60;
+        boxsys_append(bsys, bsys->in->m.pos, size);
+    }
 }
 
 static void boxsys_handle_lup(box_system_t *bsys)
@@ -72,46 +75,49 @@ static void boxsys_handle_lup(box_system_t *bsys)
     }
 }
 
-static uint8_t box_check_collision(box_t *box1, box_t *box2)
+static inline bound_t box_bound_get(v2 pos, v2 size)
 {
-    int t1,b1,l1,r1;
-    int t2,b2,l2,r2;
+    bound_t b;
+
+    b.t = pos.y - size.y;
+    b.b = pos.y + size.y;
+    b.l = pos.x - size.x;
+    b.r = pos.x + size.x;
+    return b;
+}
+
+static uint8_t box_check_collision(v2 ppos, box_t *box1, box_t *box2)
+{
+    bound_t b1,b2,b1_prev;
     uint8_t result;
 
     result = BOX_COL_NONE;
 
-    t1 = box1->pos.y - box1->size.y;
-    b1 = box1->pos.y + box1->size.y;
-    l1 = box1->pos.x - box1->size.x;
-    r1 = box1->pos.x + box1->size.x;
+    b1 = box_bound_get(box1->pos, box1->size);
+    b2 = box_bound_get(box2->pos, box2->size);
+    b1_prev = box_bound_get(ppos, box1->size);
 
-    t2 = box2->pos.y - box2->size.y;
-    b2 = box2->pos.y + box2->size.y;
-    l2 = box2->pos.x - box2->size.x;
-    r2 = box2->pos.x + box2->size.x;
-
-    //First check if collision
-    if(b1 >= t2 && t1 <= b2 && r1 >= l2 && l1 <= r2)
+    //First check if there is a collision
+    if(b1.b >= b2.t && b1.t <= b2.b && b1.r >= b2.l && b1.l <= b2.r)
     {
-        //Top Collision
-        if(b1 >= t2 && t1 <= t2)
-            result |= BOX_COL_X;
-
-        //Bottom Collision
-        if(t1 <= b2 && b1 >= b2)
-            result |= BOX_COL_X;
-
-        //Left Collision
-        if(r1 >= l2 && l1 <= l2)
-            result |= BOX_COL_Y;
-
-        //Right Collision
-        if(l1 <= r2 && r1 >= r2)
-            result |= BOX_COL_Y;
-
         box1->col.g = 1.0f;
         box2->col.g = 1.0f;
-        return result;
+
+        //Top Collision
+        if(b1.b >= b2.t && b1.t <= b2.t && b1_prev.b <= b2.t)
+            return BOX_COL_T;
+
+        //Bottom Collision
+        if(b1.t <= b2.b && b1.b >= b2.b && b1_prev.t >= b2.b)
+            return BOX_COL_B;
+
+        //Left Collision
+        if(b1.r >= b2.l && b1.l <= b2.l && b1_prev.r <= b2.l)
+            return BOX_COL_L;
+
+        //Right Collision
+        if(b1.l <= b2.r && b1.r >= b2.r && b1_prev.l >= b2.r)
+            return BOX_COL_R;
     }
 
     box1->col.g = 0.5f;
@@ -141,13 +147,19 @@ static void boxsys_handle_select(box_system_t *bsys, box_t *box)
         if(bptr == box)
             continue;
 
-        col = box_check_collision(box, bptr);
+        col = box_check_collision(ppos, box, bptr);
 
-        if(col & BOX_COL_Y)
-            box->pos.y = ppos.y;
+        if(col & BOX_COL_L)
+            box->pos.x = bptr->pos.x - bptr->size.x - box->size.x;
 
-        if(col & BOX_COL_X)
-            box->pos.x = ppos.x;
+        if(col & BOX_COL_R)
+            box->pos.x = bptr->pos.x + bptr->size.x + box->size.x;
+
+        if(col & BOX_COL_T)
+            box->pos.y = bptr->pos.y - bptr->size.y - box->size.y;
+
+        if(col & BOX_COL_B)
+            box->pos.y = bptr->pos.y + bptr->size.y + box->size.y;
     }
 }
 
