@@ -28,8 +28,10 @@ void input_handle(input_t *i)
         }
 
         if(ev.type == SDL_MOUSEMOTION) {
+            i->ev |= INEVENT_MMOTION;
             i->m.ppos = i->m.pos;
             SDL_GetMouseState(&i->m.pos.x, &i->m.pos.y);
+            SDL_GetRelativeMouseState(&i->m.dpos.x, &i->m.dpos.y);
         }
 
         if(ev.type == SDL_MOUSEBUTTONDOWN) {

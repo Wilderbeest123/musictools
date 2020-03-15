@@ -15,7 +15,7 @@ static inline void box_draw(box_t b)
 static void boxsys_append(box_system_t *b, v2 pos, int size)
 {
     box_t box;
-    gl_color_t c = COLOR_INIT(255,127,255,255);
+    gl_color_t c = COLOR_INIT(255,127,127,255);
 
     if(b->num == MAX_BOX) {
         printf("ERROR: Already reached max box\n");
@@ -73,25 +73,76 @@ static void boxsys_handle_lup(box_system_t *bsys)
     }
 }
 
-void boxsys_update(box_system_t *b)
+static bool box_check_collision(box_t *box1, box_t *box2)
 {
-    input_t *in = b->in;
-    box_t *box;
+    int t1,b1,l1,r1;
+    int t2,b2,l2,r2;
+
+    t1 = box1->pos.y - box1->size.y;
+    b1 = box1->pos.y + box1->size.y;
+    l1 = box1->pos.x - box1->size.x;
+    r1 = box1->pos.x + box1->size.x;
+
+    t2 = box2->pos.y - box2->size.y;
+    b2 = box2->pos.y + box2->size.y;
+    l2 = box2->pos.x - box2->size.x;
+    r2 = box2->pos.x + box2->size.x;
+
+    if((r1 >= l2 && r1 <= r2 && b1 >= t2 && t1 <= b2) ||
+       (l1 <= r2 && l1 >= l2 && t1 <= b2 && b1 >= t2))
+    {
+        box1->col.g = 1.0f;
+        box2->col.g = 1.0f;
+        return true;
+    }
+
+    box1->col.g = 0.5f;
+    box2->col.g = 0.5f;
+    return false;
+}
+
+static void boxsys_handle_select(box_system_t *bsys, box_t *box)
+{
+    input_t *in = bsys->in;
+    box_t *bptr;
+
+    if((in->ev & INEVENT_MMOTION) != INEVENT_MMOTION)
+        return;
+
+    //Check for collisions
+    for(int i=0; i<bsys->num; i++)
+    {
+        bptr = &bsys->b[i];
+
+        if(bptr == box)
+            continue;
+
+        box_check_collision(box, bptr);
+    }
+
+    box->pos.x += in->m.pos.x - in->m.ppos.x;
+    box->pos.y += in->m.pos.y - in->m.ppos.y;
+}
+
+void boxsys_update(box_system_t *bsys)
+{
+    input_t *in = bsys->in;
+    box_t *bptr;
 
     if(in->ev & INEVENT_LDOWN)
-        boxsys_handle_ldown(b, in->m.pos);
+        boxsys_handle_ldown(bsys, in->m.pos);
 
     if(in->ev & INEVENT_LUP)
-        boxsys_handle_lup(b);
+        boxsys_handle_lup(bsys);
 
-    for(int i=0; i<b->num; i++)
+    for(int i=0; i<bsys->num; i++)
     {
-        box = &b->b[i];
+        bptr = &bsys->b[i];
 
-        if(box->sel)
-            box->pos = in->m.pos;
+        if(bptr->sel)
+            boxsys_handle_select(bsys, bptr);
 
-        box_draw(*box);
+        box_draw(*bptr);
     }
 }
 

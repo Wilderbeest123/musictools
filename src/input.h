@@ -7,13 +7,15 @@ typedef struct
 {
     v2 pos;                     /* Current Mouse Location */
     v2 ppos;                    /* Previous Mouse Location */
-    bool lPress;                /* Left Button is currently pressed */
+    v2 dpos;                    /* Relative Mouse Location (Delta) */
+    bool lPress;                /* Left Button is currenty pressed */
 } mouse_t;
 
 typedef enum
 {
     INEVENT_LDOWN=0x01,
     INEVENT_LUP=0x02,
+    INEVENT_MMOTION=0x04,
 
 } input_events_t;
 
