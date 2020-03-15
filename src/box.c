@@ -1,6 +1,5 @@
 #include "box.h"
 
-
 void boxsys_init(box_system_t *b, input_t *in)
 {
     b->num = 0;
@@ -73,10 +72,13 @@ static void boxsys_handle_lup(box_system_t *bsys)
     }
 }
 
-static bool box_check_collision(box_t *box1, box_t *box2)
+static uint8_t box_check_collision(box_t *box1, box_t *box2)
 {
     int t1,b1,l1,r1;
     int t2,b2,l2,r2;
+    uint8_t result;
+
+    result = BOX_COL_NONE;
 
     t1 = box1->pos.y - box1->size.y;
     b1 = box1->pos.y + box1->size.y;
@@ -88,26 +90,48 @@ static bool box_check_collision(box_t *box1, box_t *box2)
     l2 = box2->pos.x - box2->size.x;
     r2 = box2->pos.x + box2->size.x;
 
-    if((r1 >= l2 && r1 <= r2 && b1 >= t2 && t1 <= b2) ||
-       (l1 <= r2 && l1 >= l2 && t1 <= b2 && b1 >= t2))
+    //First check if collision
+    if(b1 >= t2 && t1 <= b2 && r1 >= l2 && l1 <= r2)
     {
+        //Top Collision
+        if(b1 >= t2 && t1 <= t2)
+            result |= BOX_COL_X;
+
+        //Bottom Collision
+        if(t1 <= b2 && b1 >= b2)
+            result |= BOX_COL_X;
+
+        //Left Collision
+        if(r1 >= l2 && l1 <= l2)
+            result |= BOX_COL_Y;
+
+        //Right Collision
+        if(l1 <= r2 && r1 >= r2)
+            result |= BOX_COL_Y;
+
         box1->col.g = 1.0f;
         box2->col.g = 1.0f;
-        return true;
+        return result;
     }
 
     box1->col.g = 0.5f;
     box2->col.g = 0.5f;
-    return false;
+    return BOX_COL_NONE;
 }
 
 static void boxsys_handle_select(box_system_t *bsys, box_t *box)
 {
     input_t *in = bsys->in;
     box_t *bptr;
+    v2 ppos;
+    int col;
 
     if((in->ev & INEVENT_MMOTION) != INEVENT_MMOTION)
         return;
+
+    ppos = box->pos;
+    box->pos.x += in->m.pos.x - in->m.ppos.x;
+    box->pos.y += in->m.pos.y - in->m.ppos.y;
 
     //Check for collisions
     for(int i=0; i<bsys->num; i++)
@@ -117,11 +141,14 @@ static void boxsys_handle_select(box_system_t *bsys, box_t *box)
         if(bptr == box)
             continue;
 
-        box_check_collision(box, bptr);
-    }
+        col = box_check_collision(box, bptr);
 
-    box->pos.x += in->m.pos.x - in->m.ppos.x;
-    box->pos.y += in->m.pos.y - in->m.ppos.y;
+        if(col & BOX_COL_Y)
+            box->pos.y = ppos.y;
+
+        if(col & BOX_COL_X)
+            box->pos.x = ppos.x;
+    }
 }
 
 void boxsys_update(box_system_t *bsys)
@@ -145,4 +172,3 @@ void boxsys_update(box_system_t *bsys)
         box_draw(*bptr);
     }
 }
-

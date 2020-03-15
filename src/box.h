@@ -5,6 +5,13 @@
 #include "shapes.h"
 #include "input.h"
 
+typedef enum
+{
+    BOX_COL_NONE=0x00,
+    BOX_COL_X=0x01,
+    BOX_COL_Y=0x02,
+} box_col_t;
+
 typedef struct
 {
     v2 pos;
