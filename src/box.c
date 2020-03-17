@@ -136,8 +136,8 @@ static void boxsys_handle_select(box_system_t *bsys, box_t *box)
         return;
 
     ppos = box->pos;
-    box->pos.x += in->m.pos.x - in->m.ppos.x;
-    box->pos.y += in->m.pos.y - in->m.ppos.y;
+    box->pos.x += in->m.dpos.x;
+    box->pos.y += in->m.dpos.y;
 
     //Check for collisions
     for(int i=0; i<bsys->num; i++)

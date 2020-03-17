@@ -23,10 +23,14 @@ int main(void)
     shapes_init(&sh);
     boxsys_init(&b, &in);
 
+    gl_color_t c = COLOR_INIT(255,127,255,255);
+
     while(s.close == false)
     {
         input_update(&in);
         boxsys_update(&b);
+
+        circle_draw(100, 100, 50, 50, c);
         screen_swap_buffer(&s);
     }
 

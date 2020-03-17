@@ -21,6 +21,8 @@ typedef struct
     GLuint vcolor;               /* ID of vertex color buffer */
     GLuint ebo;                 /* ID of element buffer */
 
+    GLenum v_type;               /* Primitive type used to render vertex data */
+
     int v_len;                   /* No. of vertices in VBO */
     int e_len;                   /* No. of elements in EBO */
 
@@ -33,10 +35,13 @@ typedef struct
     gl_program_t *gl;
     gl_model_t square;
     gl_model_t triangle;
+    gl_model_t circle;
 } shapes_t;
 
 void shapes_init(shapes_t *s);
+
 void square_draw(int x, int y, int width, int height, gl_color_t c);
 void tri_draw(int x, int y, int width, int height, gl_color_t c);
+void circle_draw(int x, int y, int width, int height, gl_color_t c);
 
 #endif  /* SHAPES_H_ */

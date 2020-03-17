@@ -1,5 +1,6 @@
 #include "shapes.h"
 #include <cglm/cglm.h>
+#include <math.h>
 
 static shapes_t *gShapes;
 
@@ -49,6 +50,7 @@ static gl_model_t model_init_square(void)
     GLuint elements[] = { 0, 1, 2, 2, 3, 0 };
 
     s.v_len = 4;
+    s.v_type = GL_TRIANGLES;
     s.e_len = sizeof(elements);
 
     //Init VAO
@@ -75,6 +77,7 @@ static gl_model_t model_init_triangle(void)
                        -1.0f, -1.0f, 0.0f,
                        1.0f, -1.0f, 0.0f };
     s.v_len = 3;
+    s.v_type = GL_TRIANGLES;
 
     //Init VAO
     glGenVertexArrays(1, &s.vao);
@@ -86,6 +89,45 @@ static gl_model_t model_init_triangle(void)
     glBindVertexArray(0); //Unbind VAO
     return s;
 }
+
+static gl_model_t model_init_circle(void)
+{
+    gl_model_t c = MODEL_INIT();
+    int num_steps;
+    float step;
+    GLfloat *vpos;
+
+    num_steps = 45;
+    step = (2.0*M_PI)/num_steps;
+
+    c.v_len = num_steps+2;
+    c.v_type = GL_TRIANGLE_FAN;
+    vpos = (GLfloat *)malloc(sizeof(GLfloat)*3*(c.v_len));
+
+    vpos[0] = 0.0f;
+    vpos[1] = 0.0f;
+    vpos[2] = 0.0f;
+
+    for(int i=1; i<num_steps+2; i++)
+    {
+        (vpos+3*i)[0] = cos(i*step);
+        (vpos+3*i)[1] = sin(i*step);
+        (vpos+3*i)[2] = 0.0f;
+    }
+
+    //Init VAO
+    glGenVertexArrays(1, &c.vao);
+    glBindVertexArray(c.vao);
+
+    //Init VBO
+    model_init_vpos(&c.vpos, vpos, sizeof(GLfloat)*3*(c.v_len));
+
+    glBindVertexArray(0); //Unbind VAO
+
+    free(vpos);
+    return c;
+}
+
 
 static void model_uniform_pos(int x, int y, int width, int height)
 {
@@ -113,11 +155,11 @@ static inline void model_draw(gl_model_t s, int x, int y, int width, int height)
     model_uniform_pos(x, y, width, height);
 
     if(s.ebo) {
-        glDrawElements(GL_TRIANGLES, s.e_len, GL_UNSIGNED_INT, 0);
+        glDrawElements(s.v_type, s.e_len, GL_UNSIGNED_INT, 0);
         return;
     }
 
-    glDrawArrays(GL_TRIANGLES, 0, s.v_len);
+    glDrawArrays(s.v_type, 0, s.v_len);
 }
 
 void shapes_init(shapes_t *s)
@@ -125,6 +167,14 @@ void shapes_init(shapes_t *s)
     s->gl = gl_program();
     s->square = model_init_square();
     s->triangle = model_init_triangle();
+    s->circle = model_init_circle();
+
+    /*
+    printf("%u, %u, %u, %u\n", s->square.vao, s->square.vpos, s->square.vcolor, s->square.ebo);
+    printf("%u, %u, %u, %u\n", s->triangle.vao, s->triangle.vpos, s->triangle.vcolor, s->triangle.ebo);
+    printf("%u, %u, %u, %u\n", s->circle.vao, s->circle.vpos, s->circle.vcolor, s->circle.ebo);
+    */
+
     gShapes = s;
 }
 
@@ -138,4 +188,10 @@ void tri_draw(int x, int y, int width, int height, gl_color_t c)
 {
     model_uniform_color(c);
     model_draw(gShapes->triangle, x, y, width, height);
+}
+
+void circle_draw(int x, int y, int width, int height, gl_color_t c)
+{
+    model_uniform_color(c);
+    model_draw(gShapes->circle, x, y, width, height);
 }
