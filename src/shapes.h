@@ -19,7 +19,8 @@ typedef struct
     GLuint vao;
     GLuint vpos;                 /* ID of vertex pos buffer */
     GLuint vcolor;               /* ID of vertex color buffer */
-    GLuint ebo;                 /* ID of element buffer */
+    GLuint tcoord;               /* ID of texture coordinate buffer */
+    GLuint ebo;                  /* ID of element buffer */
 
     GLenum v_type;               /* Primitive type used to render vertex data */
 

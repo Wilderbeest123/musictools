@@ -11,6 +11,53 @@
 #include "input.h"
 #include "box.h"
 
+/* NOTE: This is a WIP */
+static void open_font(void)
+{
+    TTF_Font *f;
+    SDL_Surface *s;
+    unsigned int t;
+
+    SDL_Color c = {255, 127, 255};
+
+    f = TTF_OpenFont("res/OpenSans-Regular.ttf", 16);
+    assert(f);
+
+    s = TTF_RenderText_Blended(f, "This is a test", c);
+    assert(s);
+
+    printf("Width: %d, Height: %d pixtype: %u\n", s->w, s->h, s->format->BitsPerPixel);
+
+    glGenTextures(1, &t);
+
+    glBindTexture(GL_TEXTURE_2D, t);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+
+    SDL_FreeSurface(s);
+    TTF_CloseFont(f);
+}
+
+static void load_image(void)
+{
+    SDL_Surface *s = IMG_Load("res/brick.png");
+    assert(s);
+
+    unsigned int t;
+
+    //glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &t);
+    glBindTexture(GL_TEXTURE_2D, t);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s->w, s->h, 0, GL_RGB, GL_UNSIGNED_BYTE, s->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(s);
+}
+
+
 int main(void)
 {
     screen_t s;
@@ -23,6 +70,7 @@ int main(void)
     shapes_init(&sh);
     boxsys_init(&b, &in);
 
+    load_image();
     gl_color_t c = COLOR_INIT(255,127,255,255);
 
     while(s.close == false)

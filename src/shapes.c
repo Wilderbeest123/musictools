@@ -49,6 +49,11 @@ static gl_model_t model_init_square(void)
 
     GLuint elements[] = { 0, 1, 2, 2, 3, 0 };
 
+    GLfloat tex[] = { 0.0f, 1.0f,
+                      1.0f, 1.0f,
+                      1.0f, 0.0f,
+                      0.0f, 0.0f };
+
     s.v_len = 4;
     s.v_type = GL_TRIANGLES;
     s.e_len = sizeof(elements);
@@ -57,8 +62,17 @@ static gl_model_t model_init_square(void)
     glGenVertexArrays(1, &s.vao);
     glBindVertexArray(s.vao);
 
-    //Init VBO
+    //Init VBOs
     model_init_vpos(&s.vpos, vpos, sizeof(vpos));
+
+    //Init tcoord buffer
+    glGenBuffers(1, &s.tcoord);
+    glBindBuffer(GL_ARRAY_BUFFER, s.tcoord);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(tex)*sizeof(GL_FLOAT), tex, GL_STATIC_DRAW);
+
+    //Map tcoord buffer to binded VAO
+    glEnableVertexAttribArray(VERT_ATTR_TCOORD);
+    glVertexAttribPointer(VERT_ATTR_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
     //Init EBO
     glGenBuffers(1, &s.ebo);
