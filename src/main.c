@@ -12,7 +12,7 @@
 #include "box.h"
 
 /* NOTE: This is a WIP */
-static void open_font(void)
+static void load_font(void)
 {
     TTF_Font *f;
     SDL_Surface *s;
@@ -32,19 +32,19 @@ static void open_font(void)
 
     glBindTexture(GL_TEXTURE_2D, t);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     SDL_FreeSurface(s);
     TTF_CloseFont(f);
 }
 
-static void load_image(void)
+static void load_image(char *filename)
 {
-    SDL_Surface *s = IMG_Load("res/brick.png");
+    SDL_Surface *s = IMG_Load(filename);
     assert(s);
 
     unsigned int t;
 
-    //glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &t);
     glBindTexture(GL_TEXTURE_2D, t);
 
@@ -70,8 +70,11 @@ int main(void)
     shapes_init(&sh);
     boxsys_init(&b, &in);
 
-    load_image();
-    gl_color_t c = COLOR_INIT(255,127,255,255);
+    load_image("res/yoda.png");
+    //load_image("res/brick.png");
+    //load_font();
+
+    gl_color_t c = COLOR_INIT(255,127,255,127);
 
     while(s.close == false)
     {
@@ -79,6 +82,7 @@ int main(void)
         boxsys_update(&b);
 
         circle_draw(100, 100, 50, 50, c);
+        img_draw(200, 200, 50, 50);
         screen_swap_buffer(&s);
     }
 

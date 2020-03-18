@@ -38,6 +38,18 @@ static void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
     glVertexAttribPointer(VERT_ATTR_POS, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
+static void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len)
+{
+    //Init texture coord buffer
+    glGenBuffers(1, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, len*sizeof(GL_FLOAT), tcoord, GL_STATIC_DRAW);
+
+    //Map tcoord buffer to currently binded VAO
+    glEnableVertexAttribArray(VERT_ATTR_TCOORD);
+    glVertexAttribPointer(VERT_ATTR_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+}
+
 static gl_model_t model_init_square(void)
 {
     gl_model_t s = MODEL_INIT();
@@ -49,10 +61,10 @@ static gl_model_t model_init_square(void)
 
     GLuint elements[] = { 0, 1, 2, 2, 3, 0 };
 
-    GLfloat tex[] = { 0.0f, 1.0f,
-                      1.0f, 1.0f,
-                      1.0f, 0.0f,
-                      0.0f, 0.0f };
+    GLfloat tcoord[] = { 0.0f, 1.0f,
+                         1.0f, 1.0f,
+                         1.0f, 0.0f,
+                         0.0f, 0.0f };
 
     s.v_len = 4;
     s.v_type = GL_TRIANGLES;
@@ -64,15 +76,7 @@ static gl_model_t model_init_square(void)
 
     //Init VBOs
     model_init_vpos(&s.vpos, vpos, sizeof(vpos));
-
-    //Init tcoord buffer
-    glGenBuffers(1, &s.tcoord);
-    glBindBuffer(GL_ARRAY_BUFFER, s.tcoord);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(tex)*sizeof(GL_FLOAT), tex, GL_STATIC_DRAW);
-
-    //Map tcoord buffer to binded VAO
-    glEnableVertexAttribArray(VERT_ATTR_TCOORD);
-    glVertexAttribPointer(VERT_ATTR_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    model_init_tcoord(&s.tcoord, tcoord, sizeof(tcoord));
 
     //Init EBO
     glGenBuffers(1, &s.ebo);
@@ -109,7 +113,7 @@ static gl_model_t model_init_circle(void)
     gl_model_t c = MODEL_INIT();
     int num_steps;
     float step;
-    GLfloat *vpos;
+    GLfloat *vpos, *tcoord;
 
     num_steps = 45;
     step = (2.0*M_PI)/num_steps;
@@ -117,28 +121,37 @@ static gl_model_t model_init_circle(void)
     c.v_len = num_steps+2;
     c.v_type = GL_TRIANGLE_FAN;
     vpos = (GLfloat *)malloc(sizeof(GLfloat)*3*(c.v_len));
+    tcoord = (GLfloat *)malloc(sizeof(GLfloat)*2*(c.v_len));
 
     vpos[0] = 0.0f;
     vpos[1] = 0.0f;
     vpos[2] = 0.0f;
+
+    tcoord[0] = 0.5f;
+    tcoord[1] = 0.5f;
 
     for(int i=1; i<num_steps+2; i++)
     {
         (vpos+3*i)[0] = cos(i*step);
         (vpos+3*i)[1] = sin(i*step);
         (vpos+3*i)[2] = 0.0f;
+
+        (tcoord+2*i)[0] = 0.5*(cos(i*step)+1.0);
+        (tcoord+2*i)[1] = 0.5*(sin(i*step)+1.0);
     }
 
     //Init VAO
     glGenVertexArrays(1, &c.vao);
     glBindVertexArray(c.vao);
 
-    //Init VBO
+    //Init VBOs
     model_init_vpos(&c.vpos, vpos, sizeof(GLfloat)*3*(c.v_len));
+    model_init_tcoord(&c.tcoord, tcoord, sizeof(GLfloat)*2*(c.v_len));
 
     glBindVertexArray(0); //Unbind VAO
 
     free(vpos);
+    free(tcoord);
     return c;
 }
 
@@ -162,9 +175,14 @@ static inline void model_uniform_color(gl_color_t c)
     glProgramUniform4fv(gShapes->gl->p, VERT_UNIFORM_COLOR, 1, (GLfloat*)&c);
 }
 
-static inline void model_draw(gl_model_t s, int x, int y, int width, int height)
+static inline void model_draw(gl_model_t s, int x, int y, int width, int height, bool use_tcoord)
 {
     glBindVertexArray(s.vao);
+
+    if(use_tcoord)
+        glEnableVertexAttribArray(VERT_ATTR_TCOORD);
+    else
+        glDisableVertexAttribArray(VERT_ATTR_TCOORD);
 
     model_uniform_pos(x, y, width, height);
 
@@ -192,20 +210,31 @@ void shapes_init(shapes_t *s)
     gShapes = s;
 }
 
-void square_draw(int x, int y, int width, int height, gl_color_t c)
+static inline void __square_draw(int x, int y, int width, int height, gl_color_t c, bool use_tcoord)
 {
     model_uniform_color(c);
-    model_draw(gShapes->square, x, y, width, height);
+    model_draw(gShapes->square, x, y, width, height, use_tcoord);
+}
+
+void square_draw(int x, int y, int width, int height, gl_color_t c)
+{
+    __square_draw(x, y, width, height, c, true);
+}
+
+void img_draw(int x, int y, int width, int height)
+{
+    gl_color_t c = COLOR_INIT(255,255,255,255);
+    __square_draw(x, y, width, height, c, true);
 }
 
 void tri_draw(int x, int y, int width, int height, gl_color_t c)
 {
     model_uniform_color(c);
-    model_draw(gShapes->triangle, x, y, width, height);
+    model_draw(gShapes->triangle, x, y, width, height, false);
 }
 
 void circle_draw(int x, int y, int width, int height, gl_color_t c)
 {
     model_uniform_color(c);
-    model_draw(gShapes->circle, x, y, width, height);
+    model_draw(gShapes->circle, x, y, width, height, true);
 }

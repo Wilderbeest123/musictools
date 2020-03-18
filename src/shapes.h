@@ -41,6 +41,7 @@ typedef struct
 
 void shapes_init(shapes_t *s);
 
+void img_draw(int x, int y, int width, int height);
 void square_draw(int x, int y, int width, int height, gl_color_t c);
 void tri_draw(int x, int y, int width, int height, gl_color_t c);
 void circle_draw(int x, int y, int width, int height, gl_color_t c);
