@@ -12,16 +12,23 @@
 #include "box.h"
 
 /* NOTE: This is a WIP */
-static void load_font(void)
+static void load_font(char *filename, int fontsize)
 {
     TTF_Font *f;
     SDL_Surface *s;
     unsigned int t;
 
-    SDL_Color c = {255, 127, 255};
+    SDL_Color c = {255, 255, 255, 255};
 
-    f = TTF_OpenFont("res/OpenSans-Regular.ttf", 16);
+    f = TTF_OpenFont(filename, fontsize);
     assert(f);
+
+
+    /* NOTE(jack): These two functions were required since the below
+       TTF_RenderText_Blended always generates alpha values as 0x00
+       and the pixels are in GL_RGBA format... */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     s = TTF_RenderText_Blended(f, "This is a test", c);
     assert(s);
@@ -29,8 +36,8 @@ static void load_font(void)
     printf("Width: %d, Height: %d pixtype: %u\n", s->w, s->h, s->format->BitsPerPixel);
 
     glGenTextures(1, &t);
-
     glBindTexture(GL_TEXTURE_2D, t);
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -57,7 +64,6 @@ static void load_image(char *filename)
     SDL_FreeSurface(s);
 }
 
-
 int main(void)
 {
     screen_t s;
@@ -72,7 +78,7 @@ int main(void)
 
     load_image("res/yoda.png");
     //load_image("res/brick.png");
-    //load_font();
+    load_font("res/OpenSans-Regular.ttf", 64);
 
     gl_color_t c = COLOR_INIT(255,127,255,127);
 
@@ -82,7 +88,11 @@ int main(void)
         boxsys_update(&b);
 
         circle_draw(100, 100, 50, 50, c);
-        img_draw(200, 200, 50, 50);
+        glBindTexture(GL_TEXTURE_2D, 2);
+
+        img_draw(200, 200, 181, 45);
+        glBindTexture(GL_TEXTURE_2D, 1);
+
         screen_swap_buffer(&s);
     }
 

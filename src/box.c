@@ -14,7 +14,7 @@ static inline void box_draw(box_t b)
 static void boxsys_append(box_system_t *b, v2 pos, v2 size)
 {
     box_t box;
-    gl_color_t c = COLOR_INIT(255,127,127,255);
+    gl_color_t c = COLOR_INIT(255,255,127,255);
 
     if(b->num == MAX_BOX) {
         printf("ERROR: Already reached max box\n");
