@@ -1,4 +1,5 @@
 #include "input.h"
+#include "box.h"
 
 void input_init(input_t *i, screen_t *s)
 {
@@ -39,6 +40,12 @@ void input_update(input_t *i)
                 i->m.lPress = true;
                 i->ev |= INEVENT_LDOWN;
             }
+
+            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+                i->m.lPress = true;
+                i->ev |= INEVENT_RDOWN;
+            }
+
         }
 
         if(ev.type == SDL_MOUSEBUTTONUP) {
@@ -46,6 +53,23 @@ void input_update(input_t *i)
                 i->m.lPress = false;
                 i->ev |= INEVENT_LUP;
             }
+
+            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+                i->m.rPress = false;
+                i->ev |= INEVENT_RUP;
+            }
         }
     }
+}
+
+bool input_check_sel(v2 mpos, v2 pos, v2 size)
+{
+    bound_t box;
+
+    box = box_bound_get(pos, size);
+
+    if(mpos.y >= box.t && mpos.y <= box.b && mpos.x >= box.l && mpos.x <= box.r)
+        return true;
+
+    return false;
 }

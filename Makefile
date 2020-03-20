@@ -6,7 +6,8 @@ SRC_FILES = main.c \
 						screen.c \
 						shapes.c \
 						input.c \
-						box.c
+						box.c \
+						button.c
 
 INCLUDE_DIRS = -I /usr/include/alsa \
 							 -I/usr/local/include/SDL2

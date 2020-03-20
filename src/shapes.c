@@ -1,5 +1,6 @@
 #include "shapes.h"
 #include <cglm/cglm.h>
+#include <assert.h>
 #include <math.h>
 
 static shapes_t *gShapes;
@@ -237,4 +238,56 @@ void circle_draw(int x, int y, int width, int height, gl_color_t c)
 {
     model_uniform_color(c);
     model_draw(gShapes->circle, x, y, width, height, true);
+}
+
+uint32_t gl_load_font(char *filename, int fontsize)
+{
+    unsigned int t;
+    TTF_Font *f;
+    SDL_Surface *s;
+
+    SDL_Color c = {255, 255, 255, 255};
+
+    f = TTF_OpenFont(filename, fontsize);
+    assert(f);
+
+    /* NOTE(jack): These two functions were required since the below
+       TTF_RenderText_Blended always generates alpha values as 0x00
+       and the pixels are in GL_RGBA format... */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    s = TTF_RenderText_Blended(f, "This is a test", c);
+    assert(s);
+
+    printf("Width: %d, Height: %d pixtype: %u\n", s->w, s->h, s->format->BitsPerPixel);
+
+    glGenTextures(1, &t);
+    glBindTexture(GL_TEXTURE_2D, t);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(s);
+    TTF_CloseFont(f);
+    return t;
+}
+
+uint32_t gl_load_image(char *filename)
+{
+    uint32_t t;
+    SDL_Surface *s = IMG_Load(filename);
+    assert(s);
+
+    glGenTextures(1, &t);
+    glBindTexture(GL_TEXTURE_2D, t);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s->w, s->h, 0, GL_RGB, GL_UNSIGNED_BYTE, s->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(s);
+    return t;
 }

@@ -1,6 +1,10 @@
 #ifndef SHAPES_H_
 #define SHAPES_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <float.h>
+
 #include "screen.h"
 
 typedef struct
@@ -45,5 +49,8 @@ void img_draw(int x, int y, int width, int height);
 void square_draw(int x, int y, int width, int height, gl_color_t c);
 void tri_draw(int x, int y, int width, int height, gl_color_t c);
 void circle_draw(int x, int y, int width, int height, gl_color_t c);
+
+uint32_t gl_load_font(char *filename, int fontsize);
+uint32_t gl_load_image(char *filename);
 
 #endif  /* SHAPES_H_ */

@@ -43,4 +43,6 @@ typedef struct
 void boxsys_init(box_system_t *b, input_t *in);
 void boxsys_update(box_system_t *b);
 
+bound_t box_bound_get(v2 pos, v2 size);
+
 #endif  /* BOX_H_ */

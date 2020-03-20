@@ -1,4 +1,5 @@
 #include "box.h"
+#include "input.h"
 
 void boxsys_init(box_system_t *b, input_t *in)
 {
@@ -31,7 +32,6 @@ static void boxsys_append(box_system_t *b, v2 pos, v2 size)
 
 static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
 {
-    int t,b,l,r;
     box_t *box;
     bool append = true;
     v2 size;
@@ -41,14 +41,8 @@ static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
     for(int i=0; i<bsys->num; i++)
     {
         box = &bsys->b[i];
-        t = box->pos.y - box->size.y;
-        b = box->pos.y + box->size.y;
-        l = box->pos.x - box->size.x;
-        r = box->pos.x + box->size.x;
 
-        //printf("T: %d B: %d L: %d R: %d\n", t, b, l, r);
-
-        if(pos.y >= t && pos.y <= b && pos.x >= l && pos.x <= r)
+        if(input_check_sel(pos, box->pos, box->size) == true)
         {
             box->sel = true;
             box->col.r = 1.0;
@@ -75,7 +69,7 @@ static void boxsys_handle_lup(box_system_t *bsys)
     }
 }
 
-static inline bound_t box_bound_get(v2 pos, v2 size)
+bound_t box_bound_get(v2 pos, v2 size)
 {
     bound_t b;
 

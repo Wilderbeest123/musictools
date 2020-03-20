@@ -10,58 +10,32 @@
 #include "shapes.h"
 #include "input.h"
 #include "box.h"
+#include "button.h"
+#include <stdlib.h>
 
-/* NOTE: This is a WIP */
-static void load_font(char *filename, int fontsize)
+
+void button_fn(void *data)
 {
-    TTF_Font *f;
-    SDL_Surface *s;
-    unsigned int t;
+    box_system_t *bsys = (box_system_t*)data;
+    box_t *box;
 
-    SDL_Color c = {255, 255, 255, 255};
+    for(int i=0; i<bsys->num; i++)
+    {
+        box = &bsys->b[i];
 
-    f = TTF_OpenFont(filename, fontsize);
-    assert(f);
-
-
-    /* NOTE(jack): These two functions were required since the below
-       TTF_RenderText_Blended always generates alpha values as 0x00
-       and the pixels are in GL_RGBA format... */
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    s = TTF_RenderText_Blended(f, "This is a test", c);
-    assert(s);
-
-    printf("Width: %d, Height: %d pixtype: %u\n", s->w, s->h, s->format->BitsPerPixel);
-
-    glGenTextures(1, &t);
-    glBindTexture(GL_TEXTURE_2D, t);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    SDL_FreeSurface(s);
-    TTF_CloseFont(f);
+        box->col.r = (float)rand()/(float)(RAND_MAX/1.0);;
+        box->col.g = (float)rand()/(float)(RAND_MAX/1.0);;
+        box->col.b = (float)rand()/(float)(RAND_MAX/1.0);;
+    }
 }
 
-static void load_image(char *filename)
+void button_handle(input_t *in, button_t *b)
 {
-    SDL_Surface *s = IMG_Load(filename);
-    assert(s);
+    if(in->ev & INEVENT_RDOWN)
+        if(input_check_sel(in->m.pos, b->pos, b->size))
+            b->fn(b->data);
 
-    unsigned int t;
-
-    glGenTextures(1, &t);
-    glBindTexture(GL_TEXTURE_2D, t);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s->w, s->h, 0, GL_RGB, GL_UNSIGNED_BYTE, s->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    SDL_FreeSurface(s);
+    button_draw(b);
 }
 
 int main(void)
@@ -69,29 +43,27 @@ int main(void)
     screen_t s;
     input_t in;
     shapes_t sh;
-    box_system_t b;
+    box_system_t bsys;
 
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
     input_init(&in, &s);
     shapes_init(&sh);
-    boxsys_init(&b, &in);
+    boxsys_init(&bsys, &in);
 
-    load_image("res/yoda.png");
-    //load_image("res/brick.png");
-    load_font("res/OpenSans-Regular.ttf", 64);
+    button_t b = BUTTON_INIT(50,50,25,25);
+
+    b.tid = gl_load_image("res/brick.png");
+    b.fn = button_fn;
+    b.data = &bsys;
 
     gl_color_t c = COLOR_INIT(255,127,255,127);
 
     while(s.close == false)
     {
         input_update(&in);
-        boxsys_update(&b);
+        boxsys_update(&bsys);
 
-        circle_draw(100, 100, 50, 50, c);
-        glBindTexture(GL_TEXTURE_2D, 2);
-
-        img_draw(200, 200, 181, 45);
-        glBindTexture(GL_TEXTURE_2D, 1);
+        button_handle(&in, &b);
 
         screen_swap_buffer(&s);
     }
