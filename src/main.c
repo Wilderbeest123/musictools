@@ -13,29 +13,80 @@
 #include "button.h"
 #include <stdlib.h>
 
-
-void button_fn(void *data)
+typedef struct
 {
-    box_system_t *bsys = (box_system_t*)data;
-    box_t *box;
+    box_t b;
+    uint8_t state;
+    button_t en;
+    button_t move;
 
-    for(int i=0; i<bsys->num; i++)
+} osc_t;
+
+void osc_enable(void *data, uint8_t event)
+{
+    osc_t *o = (osc_t*)data;
+
+    if(event & INEVENT_LDOWN)
     {
-        box = &bsys->b[i];
-
-        box->col.r = (float)rand()/(float)(RAND_MAX/1.0);;
-        box->col.g = (float)rand()/(float)(RAND_MAX/1.0);;
-        box->col.b = (float)rand()/(float)(RAND_MAX/1.0);;
+        o->b.col.r = (float)rand()/(float)(RAND_MAX/1.0);
+        o->b.col.g = (float)rand()/(float)(RAND_MAX/1.0);
+        o->b.col.b = (float)rand()/(float)(RAND_MAX/1.0);
     }
 }
 
-void button_handle(input_t *in, button_t *b)
+void osc_move(void *data, uint8_t event)
 {
-    if(in->ev & INEVENT_RDOWN)
-        if(input_check_sel(in->m.pos, b->pos, b->size))
-            b->fn(b->data);
+    osc_t *this = (osc_t*)data;
+    printf("Move\n");
 
-    button_draw(b);
+    if(event & INEVENT_LDOWN)
+        this->b.sel = true;
+}
+
+void osc_init(osc_t *o)
+{
+    gl_color_t c = COLOR_INIT(127,127,255,255);
+    o->b = box_init(300, 300, 200, 160, c);
+    o->state = 0;
+
+    o->en.size = V2(32,32);
+    o->en.pos.x = 0;
+    o->en.pos.y = 0;
+    o->en.fn = osc_enable;
+    o->en.data = o;
+    o->en.tid = gl_load_image("res/brick.png");
+
+    o->move.size = V2(32,32);
+    o->move.pos.x = 32;
+    o->move.pos.y = 0;
+    o->move.fn = osc_move;
+    o->move.data = o;
+    o->move.tid = gl_load_image("res/yoda.png");
+}
+
+void osc_update(input_t *in, osc_t *o)
+{
+    if(in->ev & INEVENT_LDOWN)
+    {
+        if(input_check_sel(in->m.pos, V2_ADD(o->b.pos, o->en.pos), o->en.size))
+            o->en.fn(o->en.data, in->ev);
+
+        if(input_check_sel(in->m.pos, V2_ADD(o->b.pos, o->move.pos), o->move.size))
+            o->move.fn(o->move.data, in->ev);
+    }
+
+    if(in->ev & INEVENT_LUP)
+        o->b.sel = false;
+
+    if(o->b.sel && (in->ev & INEVENT_MMOTION))
+    {
+        o->b.pos.x += in->m.dpos.x;
+        o->b.pos.y += in->m.dpos.y;
+    }
+
+    box_draw(o->b);
+    button_draw_rel(&o->en, o->b.pos);
+    button_draw_rel(&o->move, o->b.pos);
 }
 
 int main(void)
@@ -48,22 +99,25 @@ int main(void)
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
     input_init(&in, &s);
     shapes_init(&sh);
-    boxsys_init(&bsys, &in);
 
+    osc_t o;
+    osc_init(&o);
+
+    /*
+      boxsys_init(&bsys, &in);
     button_t b = BUTTON_INIT(50,50,25,25);
-
     b.tid = gl_load_image("res/brick.png");
     b.fn = button_fn;
     b.data = &bsys;
-
+    */
     gl_color_t c = COLOR_INIT(255,127,255,127);
 
     while(s.close == false)
     {
         input_update(&in);
-        boxsys_update(&bsys);
-
-        button_handle(&in, &b);
+        //boxsys_update(&bsys);
+        //button_handle(&in, &b);
+        osc_update(&in, &o);
 
         screen_swap_buffer(&s);
     }

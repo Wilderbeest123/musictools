@@ -35,6 +35,14 @@ typedef struct
 
 #define MODEL_INIT() { .vao=0, .vpos=0, .vcolor=0, .ebo=0, .e_len=0, .v_len=0 }
 
+/* TO BE IMPLEMENTED */
+typedef struct
+{
+    char *name;                  /* Name of the texture asset */
+    uint32_t tid;                /* ID which represents a stored OpenGL texture */
+} gl_texture_t;
+
+
 typedef struct
 {
     gl_program_t *gl;

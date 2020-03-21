@@ -30,6 +30,18 @@ typedef struct {
     int y;
 } v2;
 
+static inline v2 V2(int x, int y)
+{
+    v2 v = { .x=x, .y=y };
+    return v;
+}
+
+static inline v2 V2_ADD(v2 a, v2 b)
+{
+    v2 v = { .x=a.x+b.x, .y=a.y+b.y };
+    return v;
+}
+
 typedef struct
 {
   int width;

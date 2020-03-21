@@ -159,8 +159,8 @@ static gl_model_t model_init_circle(void)
 
 static void model_uniform_pos(int x, int y, int width, int height)
 {
-    vec3 pos = { x, y, 0 };
-    vec3 scale = { width, height, 0 };
+    vec3 pos = { x + width/2, y + height/2, 0 };
+    vec3 scale = { (float)width/2, (float)height/2, 0 };
     mat4 ortho;
 
     glm_ortho(0.0, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0, 0.0, 1.0, ortho);

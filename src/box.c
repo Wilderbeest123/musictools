@@ -7,11 +7,6 @@ void boxsys_init(box_system_t *b, input_t *in)
     b->in = in;
 }
 
-static inline void box_draw(box_t b)
-{
-    square_draw(b.pos.x, b.pos.y, b.size.x, b.size.y, b.col);
-}
-
 static void boxsys_append(box_system_t *b, v2 pos, v2 size)
 {
     box_t box;
@@ -51,8 +46,8 @@ static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
     }
 
     if(append) {
-        size.x = 80;
-        size.y = 60;
+        size.x = SCREEN_WIDTH/10;
+        size.y = SCREEN_HEIGHT/10;
         boxsys_append(bsys, bsys->in->m.pos, size);
     }
 }
@@ -73,9 +68,9 @@ bound_t box_bound_get(v2 pos, v2 size)
 {
     bound_t b;
 
-    b.t = pos.y - size.y;
+    b.t = pos.y;
     b.b = pos.y + size.y;
-    b.l = pos.x - size.x;
+    b.l = pos.x;
     b.r = pos.x + size.x;
     return b;
 }
@@ -144,16 +139,16 @@ static void boxsys_handle_select(box_system_t *bsys, box_t *box)
         col = box_check_collision(ppos, box, bptr);
 
         if(col & BOX_COL_L)
-            box->pos.x = bptr->pos.x - bptr->size.x - box->size.x;
+            box->pos.x = bptr->pos.x - bptr->size.x/2 - box->size.x/2;
 
         if(col & BOX_COL_R)
-            box->pos.x = bptr->pos.x + bptr->size.x + box->size.x;
+            box->pos.x = bptr->pos.x + bptr->size.x/2 + box->size.x/2;
 
         if(col & BOX_COL_T)
-            box->pos.y = bptr->pos.y - bptr->size.y - box->size.y;
+            box->pos.y = bptr->pos.y - bptr->size.y/2 - box->size.y/2;
 
         if(col & BOX_COL_B)
-            box->pos.y = bptr->pos.y + bptr->size.y + box->size.y;
+            box->pos.y = bptr->pos.y + bptr->size.y/2 + box->size.y/2;
     }
 }
 
