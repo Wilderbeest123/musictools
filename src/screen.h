@@ -25,23 +25,6 @@ typedef struct {
   GLuint color;               /* Reference to color attribute in vertex shader */
 } gl_program_t;
 
-typedef struct {
-    int x;
-    int y;
-} v2;
-
-static inline v2 V2(int x, int y)
-{
-    v2 v = { .x=x, .y=y };
-    return v;
-}
-
-static inline v2 V2_ADD(v2 a, v2 b)
-{
-    v2 v = { .x=a.x+b.x, .y=a.y+b.y };
-    return v;
-}
-
 typedef struct
 {
   int width;
@@ -64,5 +47,28 @@ gl_program_t* gl_program(void);
 
 GLenum check_gl(const char *file, int line);
 #define gle() check_gl(__FILE__, __LINE__)
+
+typedef struct {
+    int x;
+    int y;
+} v2;
+
+static inline v2 V2(int x, int y)
+{
+    v2 v = { .x=x, .y=y };
+    return v;
+}
+
+static inline v2 V2_ADD(v2 a, v2 b)
+{
+    v2 v = { .x=a.x+b.x, .y=a.y+b.y };
+    return v;
+}
+
+static inline v2 V2_DEL(v2 a, v2 b)
+{
+    v2 v = { .x=a.x-b.x, .y=a.y-b.y };
+    return v;
+}
 
 #endif  /* SCREEN_H_ */

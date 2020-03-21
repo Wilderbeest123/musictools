@@ -12,6 +12,7 @@
 #include "box.h"
 #include "button.h"
 #include <stdlib.h>
+#include "ui.h"
 
 typedef struct
 {
@@ -22,57 +23,52 @@ typedef struct
 
 } osc_t;
 
-void osc_enable(void *data, uint8_t event)
+void ui_enable(void *data, uint8_t event)
 {
-    osc_t *o = (osc_t*)data;
+    ui_t *o = (ui_t*)data;
 
-    if(event & INEVENT_LDOWN)
-    {
-        o->b.col.r = (float)rand()/(float)(RAND_MAX/1.0);
-        o->b.col.g = (float)rand()/(float)(RAND_MAX/1.0);
-        o->b.col.b = (float)rand()/(float)(RAND_MAX/1.0);
-    }
+    o->b.col.r = (float)rand()/(float)(RAND_MAX/1.0);
+    o->b.col.g = (float)rand()/(float)(RAND_MAX/1.0);
+    o->b.col.b = (float)rand()/(float)(RAND_MAX/1.0);
 }
 
-void osc_move(void *data, uint8_t event)
+void ui_move(void *data, uint8_t event)
 {
-    osc_t *this = (osc_t*)data;
-    printf("Move\n");
-
-    if(event & INEVENT_LDOWN)
-        this->b.sel = true;
+    ui_t *this = (ui_t*)data;
+    this->b.sel = true;
 }
 
-void osc_init(osc_t *o)
+void ui_init(ui_t *o)
 {
     gl_color_t c = COLOR_INIT(127,127,255,255);
     o->b = box_init(300, 300, 200, 160, c);
     o->state = 0;
+    o->h.first = NULL;
 
-    o->en.size = V2(32,32);
-    o->en.pos.x = 0;
-    o->en.pos.y = 0;
-    o->en.fn = osc_enable;
-    o->en.data = o;
-    o->en.tid = gl_load_image("res/brick.png");
+    ui_node_t *nptr;
 
-    o->move.size = V2(32,32);
-    o->move.pos.x = 32;
-    o->move.pos.y = 0;
-    o->move.fn = osc_move;
-    o->move.data = o;
-    o->move.tid = gl_load_image("res/yoda.png");
+    nptr = button_init(V2(0,0),V2(32,32), gl_load_image("res/brick.png"), ui_enable, o);
+    ui_node_insert(&o->h, nptr);
+
+    nptr = button_init(V2(32,0),V2(32,32), gl_load_image("res/yoda.png"), ui_move, o);
+    ui_node_insert(&o->h, nptr);
+
 }
 
-void osc_update(input_t *in, osc_t *o)
+void ui_update(input_t *in, ui_t *o)
 {
+    ui_node_t *nptr;
+    v2 rpos;
+
     if(in->ev & INEVENT_LDOWN)
     {
-        if(input_check_sel(in->m.pos, V2_ADD(o->b.pos, o->en.pos), o->en.size))
-            o->en.fn(o->en.data, in->ev);
+        rpos = V2_DEL(in->m.pos, o->b.pos);
 
-        if(input_check_sel(in->m.pos, V2_ADD(o->b.pos, o->move.pos), o->move.size))
-            o->move.fn(o->move.data, in->ev);
+        for(nptr=o->h.first; nptr; nptr=nptr->next)
+        {
+            if(nptr->ops->select(nptr, rpos) == true)
+                break;
+        }
     }
 
     if(in->ev & INEVENT_LUP)
@@ -85,8 +81,9 @@ void osc_update(input_t *in, osc_t *o)
     }
 
     box_draw(o->b);
-    button_draw_rel(&o->en, o->b.pos);
-    button_draw_rel(&o->move, o->b.pos);
+
+    for(nptr=o->h.first; nptr; nptr=nptr->next)
+        nptr->ops->draw(nptr, o->b.pos);
 }
 
 int main(void)
@@ -100,8 +97,8 @@ int main(void)
     input_init(&in, &s);
     shapes_init(&sh);
 
-    osc_t o;
-    osc_init(&o);
+    ui_t o;
+    ui_init(&o);
 
     /*
       boxsys_init(&bsys, &in);
@@ -117,7 +114,7 @@ int main(void)
         input_update(&in);
         //boxsys_update(&bsys);
         //button_handle(&in, &b);
-        osc_update(&in, &o);
+        ui_update(&in, &o);
 
         screen_swap_buffer(&s);
     }
