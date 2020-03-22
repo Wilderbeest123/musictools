@@ -1,7 +1,7 @@
 #include "button.h"
 #include "frite.h"
 
-static bool button_check_select(ui_node_t *node, v2 mpos);
+static ui_node_t* button_check_select(ui_node_t *node, v2 mpos);
 static void button_do_draw(ui_node_t *node, v2 pos);
 static void button_free(ui_node_t *node);
 
@@ -25,16 +25,16 @@ void button_draw_rel(button_t *b, v2 pos)
     circle_draw(pos.x + b->pos.x, pos.y + b->pos.y, b->size.x, b->size.y, c);
 }
 
-static bool button_check_select(ui_node_t *node, v2 mpos)
+static ui_node_t* button_check_select(ui_node_t *node, v2 mpos)
 {
     button_t *this = CONTAINER_OF(node, button_t, n);
 
     if(input_check_sel(mpos, this->pos, this->size)) {
         this->fn(this->data, 0);
-        return true;
+        return node;
     }
 
-    return false;
+    return NULL;
 }
 
 static void button_do_draw(ui_node_t *node, v2 pos)

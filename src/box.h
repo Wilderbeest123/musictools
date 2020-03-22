@@ -4,6 +4,7 @@
 #include "screen.h"
 #include "shapes.h"
 #include "input.h"
+#include "ui_node.h"
 
 typedef enum
 {
@@ -26,28 +27,24 @@ typedef struct
 {
     v2 pos;
     v2 size;
+    unsigned int tid;           /* ID of the texture to render */
+
     gl_color_t col;
     bool sel;                   /* true if box has been selected */
-} box_t;
 
-#define MAX_BOX 32
+    ui_node_t n;
+} box_t;
 
 typedef struct
 {
-    box_t b[MAX_BOX];
-    int num;                    /* Number of boxes currently in use */
     input_t *in;
+    ui_head_t h;                /* Head of linked box nodes */
+    ui_node_t *select;          /* Reference to currently selected node. */
 
 } box_system_t;
 
 void boxsys_init(box_system_t *b, input_t *in);
 void boxsys_update(box_system_t *b);
-
-static inline box_t box_init(int x, int y, int width, int height, gl_color_t col)
-{
-  box_t b = { .pos.x=x, .pos.y=y, .size.x=width, .size.y=height, .col=col, .sel=false };
-  return b;
-}
 
 static inline void box_draw(box_t b)
 {
@@ -55,5 +52,7 @@ static inline void box_draw(box_t b)
 }
 
 bound_t box_bound_get(v2 pos, v2 size);
+
+ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c);
 
 #endif  /* BOX_H_ */

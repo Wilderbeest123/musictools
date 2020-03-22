@@ -1,66 +1,81 @@
 #include "box.h"
 #include "input.h"
+#include "frite.h"
+#include "ui.h"
+#include "button.h"
+
+static ui_node_t* box_check_select(ui_node_t *node, v2 mpos);
+static void box_do_draw(ui_node_t *node, v2 pos);
+static void box_handle_select(ui_node_t *node, input_t *in, void *data);
+static void box_free(ui_node_t *node);
+
+static ui_ops_t box_ops = { .select=box_check_select,
+                            .draw=box_do_draw,
+                            .update=box_handle_select,
+                            .free=box_free };
 
 void boxsys_init(box_system_t *b, input_t *in)
 {
-    b->num = 0;
     b->in = in;
+    b->h.first = NULL;
 }
 
-static void boxsys_append(box_system_t *b, v2 pos, v2 size)
+static ui_node_t* boxsys_append(box_system_t *bsys, v2 pos, v2 size)
 {
-    box_t box;
     gl_color_t c = COLOR_INIT(255,255,127,255);
+    ui_node_t *nptr;
 
-    if(b->num == MAX_BOX) {
-        printf("ERROR: Already reached max box\n");
-        return;
-    }
-
-    box.pos = pos;
-    box.size = size;
-    box.col = c;
-
-    b->b[b->num] = box;
-    b->num++;
+    nptr = box_init(pos, size, 0, c);
+    ui_node_insert(&bsys->h, nptr);
+    return nptr;
 }
 
 static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
 {
-    box_t *box;
     bool append = true;
+    ui_node_t *nptr;
     v2 size;
 
-    //printf("X: %d Y: %d\n", pos.x, pos.y);
+    bsys->select = NULL;
 
-    for(int i=0; i<bsys->num; i++)
+    for(nptr=bsys->h.first; nptr; nptr=nptr->next)
     {
-        box = &bsys->b[i];
+        bsys->select = nptr->ops->select(nptr, pos);
 
-        if(input_check_sel(pos, box->pos, box->size) == true)
-        {
-            box->sel = true;
-            box->col.r = 1.0;
+        if(bsys->select) {
             append = false;
+            break;
         }
     }
 
     if(append) {
         size.x = SCREEN_WIDTH/10;
         size.y = SCREEN_HEIGHT/10;
-        boxsys_append(bsys, bsys->in->m.pos, size);
+        bsys->select = boxsys_append(bsys, pos, size);
     }
 }
 
-static void boxsys_handle_lup(box_system_t *bsys)
+void boxsys_update(box_system_t *bsys)
 {
-    box_t *box;
+    input_t *in = bsys->in;
+    ui_node_t *nptr;
+    box_t *bptr;
 
-    for(int i=0; i<bsys->num; i++)
+    //Handle input events
+    if(in->ev & INEVENT_LDOWN)
+        boxsys_handle_ldown(bsys, in->m.pos);
+
+    if(in->ev & INEVENT_LUP)
+        bsys->select = NULL;
+
+    //Handle selected UI element.
+    if(bsys->select != NULL && bsys->select->ops->update != NULL)
+        bsys->select->ops->update(bsys->select, in, bsys);
+
+    for(nptr=bsys->h.first; nptr; nptr=nptr->next)
     {
-        box = &bsys->b[i];
-        box->sel = false;
-        box->col.r = 0.0;
+        bptr = CONTAINER_OF(nptr, box_t, n);
+        nptr->ops->draw(nptr, bptr->pos);
     }
 }
 
@@ -73,6 +88,35 @@ bound_t box_bound_get(v2 pos, v2 size)
     b.l = pos.x;
     b.r = pos.x + size.x;
     return b;
+}
+
+static void ui_button_callback(void *data, uint8_t event)
+{
+    ui_t *this = (ui_t*)data;
+    this->b.col.r = (float)rand()/(float)(RAND_MAX/1.0);
+    this->b.col.g = (float)rand()/(float)(RAND_MAX/1.0);
+    this->b.col.b = (float)rand()/(float)(RAND_MAX/1.0);
+}
+
+ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c)
+{
+    ui_t *this = (ui_t*)malloc(sizeof(ui_t));
+    ui_node_t *nptr;
+
+    this->b.pos = pos;
+    this->b.size = size;
+    this->b.tid = tid;
+    this->b.col = c;
+
+    this->b.tid = gl_load_image("res/brick.png");
+    this->b.n.ops = &box_ops;
+    this->b.n.next = NULL;
+    this->h.first = NULL;
+
+    nptr = button_init(V2(0,0),V2(32,32), gl_load_image("res/yoda.png"), ui_button_callback, this);
+    ui_node_insert(&this->h, nptr);
+
+    return &this->b.n;
 }
 
 static uint8_t box_check_collision(v2 ppos, box_t *box1, box_t *box2)
@@ -114,62 +158,86 @@ static uint8_t box_check_collision(v2 ppos, box_t *box1, box_t *box2)
     return BOX_COL_NONE;
 }
 
-static void boxsys_handle_select(box_system_t *bsys, box_t *box)
+static ui_node_t* box_check_select(ui_node_t *node, v2 mpos)
 {
-    input_t *in = bsys->in;
+    ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
+    ui_node_t *nptr;
+    v2 rpos;
+
+    if(input_check_sel(mpos, this->b.pos, this->b.size))
+    {
+        rpos = V2_DEL(mpos, this->b.pos);
+
+        for(nptr=this->h.first; nptr; nptr=nptr->next)
+        {
+            if(nptr->ops->select(nptr, rpos))
+                return nptr;
+        }
+
+        return node;
+    }
+
+    return NULL;
+}
+
+static void box_do_draw(ui_node_t *node, v2 pos)
+{
+    ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
+    ui_node_t *nptr;
+
+    glBindTexture(GL_TEXTURE_2D, this->b.tid);
+    box_draw(this->b);
+
+    for(nptr=this->h.first; nptr; nptr=nptr->next)
+        nptr->ops->draw(nptr, this->b.pos);
+}
+
+static void box_handle_select(ui_node_t *node, input_t *in, void *data)
+{
+    box_t *this = CONTAINER_OF(node, box_t, n);
+    box_system_t *bsys = (box_system_t*)data;
+    ui_node_t *nptr;
     box_t *bptr;
+
     v2 ppos;
     int col;
 
     if((in->ev & INEVENT_MMOTION) != INEVENT_MMOTION)
         return;
 
-    ppos = box->pos;
-    box->pos.x += in->m.dpos.x;
-    box->pos.y += in->m.dpos.y;
+    ppos = this->pos;
+    this->pos.x += in->m.dpos.x;
+    this->pos.y += in->m.dpos.y;
 
     //Check for collisions
-    for(int i=0; i<bsys->num; i++)
+    for(nptr=bsys->h.first; nptr; nptr=nptr->next)
     {
-        bptr = &bsys->b[i];
+        bptr = CONTAINER_OF(nptr, box_t, n);
 
-        if(bptr == box)
+        if(bptr == this)
             continue;
 
-        col = box_check_collision(ppos, box, bptr);
+        col = box_check_collision(ppos, this, bptr);
 
         if(col & BOX_COL_L)
-            box->pos.x = bptr->pos.x - bptr->size.x/2 - box->size.x/2;
+            this->pos.x = bptr->pos.x - bptr->size.x/2 - this->size.x/2;
 
         if(col & BOX_COL_R)
-            box->pos.x = bptr->pos.x + bptr->size.x/2 + box->size.x/2;
+            this->pos.x = bptr->pos.x + bptr->size.x/2 + this->size.x/2;
 
         if(col & BOX_COL_T)
-            box->pos.y = bptr->pos.y - bptr->size.y/2 - box->size.y/2;
+            this->pos.y = bptr->pos.y - bptr->size.y/2 - this->size.y/2;
 
         if(col & BOX_COL_B)
-            box->pos.y = bptr->pos.y + bptr->size.y/2 + box->size.y/2;
+            this->pos.y = bptr->pos.y + bptr->size.y/2 + this->size.y/2;
     }
 }
 
-void boxsys_update(box_system_t *bsys)
+static void box_free(ui_node_t *node)
 {
-    input_t *in = bsys->in;
-    box_t *bptr;
+    ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
+    ui_node_t *nptr;
 
-    if(in->ev & INEVENT_LDOWN)
-        boxsys_handle_ldown(bsys, in->m.pos);
-
-    if(in->ev & INEVENT_LUP)
-        boxsys_handle_lup(bsys);
-
-    for(int i=0; i<bsys->num; i++)
-    {
-        bptr = &bsys->b[i];
-
-        if(bptr->sel)
-            boxsys_handle_select(bsys, bptr);
-
-        box_draw(*bptr);
-    }
+    for(nptr=this->h.first; nptr; nptr=nptr->next)
+        nptr->ops->free(nptr);
 }
