@@ -19,18 +19,17 @@ int main(void)
     screen_t s;
     input_t in;
     shapes_t sh;
-    box_system_t bsys;
+    ui_system_t uisys;
 
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
     input_init(&in, &s);
     shapes_init(&sh);
-    boxsys_init(&bsys, &in);
+    uisys_init(&uisys, &in);
 
     while(s.close == false)
     {
         input_update(&in);
-        boxsys_update(&bsys);
-
+        uisys_update(&uisys);
         screen_swap_buffer(&s);
     }
 

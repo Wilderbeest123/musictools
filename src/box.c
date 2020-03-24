@@ -4,80 +4,15 @@
 #include "ui.h"
 #include "button.h"
 
-static ui_node_t* box_check_select(ui_node_t *node, v2 mpos);
-static void box_do_draw(ui_node_t *node, v2 pos);
-static void box_handle_select(ui_node_t *node, input_t *in, void *data);
-static void box_free(ui_node_t *node);
+static ui_node_t* box_ui_select(ui_node_t *node, v2 mpos);
+static void box_ui_draw(ui_node_t *node, v2 pos);
+static void box_ui_update(ui_node_t *node, input_t *in, void *data);
+static void box_ui_free(ui_node_t *node);
 
-static ui_ops_t box_ops = { .select=box_check_select,
-                            .draw=box_do_draw,
-                            .update=box_handle_select,
-                            .free=box_free };
-
-void boxsys_init(box_system_t *b, input_t *in)
-{
-    b->in = in;
-    b->h.first = NULL;
-}
-
-static ui_node_t* boxsys_append(box_system_t *bsys, v2 pos, v2 size)
-{
-    gl_color_t c = COLOR_INIT(255,255,127,255);
-    ui_node_t *nptr;
-
-    nptr = box_init(pos, size, 0, c);
-    ui_node_insert(&bsys->h, nptr);
-    return nptr;
-}
-
-static void boxsys_handle_ldown(box_system_t *bsys, v2 pos)
-{
-    bool append = true;
-    ui_node_t *nptr;
-    v2 size;
-
-    bsys->select = NULL;
-
-    for(nptr=bsys->h.first; nptr; nptr=nptr->next)
-    {
-        bsys->select = nptr->ops->select(nptr, pos);
-
-        if(bsys->select) {
-            append = false;
-            break;
-        }
-    }
-
-    if(append) {
-        size.x = SCREEN_WIDTH/10;
-        size.y = SCREEN_HEIGHT/10;
-        bsys->select = boxsys_append(bsys, pos, size);
-    }
-}
-
-void boxsys_update(box_system_t *bsys)
-{
-    input_t *in = bsys->in;
-    ui_node_t *nptr;
-    box_t *bptr;
-
-    //Handle input events
-    if(in->ev & INEVENT_LDOWN)
-        boxsys_handle_ldown(bsys, in->m.pos);
-
-    if(in->ev & INEVENT_LUP)
-        bsys->select = NULL;
-
-    //Handle selected UI element.
-    if(bsys->select != NULL && bsys->select->ops->update != NULL)
-        bsys->select->ops->update(bsys->select, in, bsys);
-
-    for(nptr=bsys->h.first; nptr; nptr=nptr->next)
-    {
-        bptr = CONTAINER_OF(nptr, box_t, n);
-        nptr->ops->draw(nptr, bptr->pos);
-    }
-}
+static ui_ops_t box_ui_ops = { .select=box_ui_select,
+                               .draw=box_ui_draw,
+                               .update=box_ui_update,
+                               .free=box_ui_free };
 
 bound_t box_bound_get(v2 pos, v2 size)
 {
@@ -109,7 +44,7 @@ ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c)
     this->b.col = c;
 
     this->b.tid = gl_load_image("res/brick.png");
-    this->b.n.ops = &box_ops;
+    this->b.n.ops = &box_ui_ops;
     this->b.n.next = NULL;
     this->h.first = NULL;
 
@@ -158,7 +93,7 @@ static uint8_t box_check_collision(v2 ppos, box_t *box1, box_t *box2)
     return BOX_COL_NONE;
 }
 
-static ui_node_t* box_check_select(ui_node_t *node, v2 mpos)
+static ui_node_t* box_ui_select(ui_node_t *node, v2 mpos)
 {
     ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
     ui_node_t *nptr;
@@ -180,7 +115,12 @@ static ui_node_t* box_check_select(ui_node_t *node, v2 mpos)
     return NULL;
 }
 
-static void box_do_draw(ui_node_t *node, v2 pos)
+static inline void box_draw(box_t b)
+{
+    square_draw(b.pos.x, b.pos.y, b.size.x, b.size.y, b.col);
+}
+
+static void box_ui_draw(ui_node_t *node, v2 pos)
 {
     ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
     ui_node_t *nptr;
@@ -192,10 +132,10 @@ static void box_do_draw(ui_node_t *node, v2 pos)
         nptr->ops->draw(nptr, this->b.pos);
 }
 
-static void box_handle_select(ui_node_t *node, input_t *in, void *data)
+static void box_ui_update(ui_node_t *node, input_t *in, void *data)
 {
     box_t *this = CONTAINER_OF(node, box_t, n);
-    box_system_t *bsys = (box_system_t*)data;
+    ui_system_t *bsys = (ui_system_t*)data;
     ui_node_t *nptr;
     box_t *bptr;
 
@@ -233,7 +173,7 @@ static void box_handle_select(ui_node_t *node, input_t *in, void *data)
     }
 }
 
-static void box_free(ui_node_t *node)
+static void box_ui_free(ui_node_t *node)
 {
     ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
     ui_node_t *nptr;

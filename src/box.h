@@ -35,22 +35,6 @@ typedef struct
     ui_node_t n;
 } box_t;
 
-typedef struct
-{
-    input_t *in;
-    ui_head_t h;                /* Head of linked box nodes */
-    ui_node_t *select;          /* Reference to currently selected node. */
-
-} box_system_t;
-
-void boxsys_init(box_system_t *b, input_t *in);
-void boxsys_update(box_system_t *b);
-
-static inline void box_draw(box_t b)
-{
-  square_draw(b.pos.x, b.pos.y, b.size.x, b.size.y, b.col);
-}
-
 bound_t box_bound_get(v2 pos, v2 size);
 
 ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c);
