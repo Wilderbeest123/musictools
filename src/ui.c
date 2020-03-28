@@ -15,13 +15,13 @@ void ui_node_insert(ui_head_t *h, ui_node_t *n)
     ptr->next = n;
 }
 
-void uisys_init(ui_system_t *b, input_t *in)
+void uisys_init(ui_system_t *uisys, input_t *in)
 {
-    b->in = in;
-    b->h.first = NULL;
+    uisys->in = in;
+    uisys->h.first = NULL;
 }
 
-static ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
+ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
 {
     gl_color_t c = COLOR_INIT(255,255,127,255);
     ui_node_t *nptr;
@@ -60,7 +60,7 @@ void uisys_update(ui_system_t *uisys)
 {
     input_t *in = uisys->in;
     ui_node_t *nptr;
-    box_t *bptr;
+    v2 pos = V2(0,0);
 
     //Handle input events
     if(in->ev & INEVENT_LDOWN)
@@ -74,8 +74,5 @@ void uisys_update(ui_system_t *uisys)
         uisys->select->ops->update(uisys->select, in, uisys);
 
     for(nptr=uisys->h.first; nptr; nptr=nptr->next)
-    {
-        bptr = CONTAINER_OF(nptr, box_t, n);
-        nptr->ops->draw(nptr, bptr->pos);
-    }
+        nptr->ops->draw(nptr, pos);
 }

@@ -22,7 +22,9 @@ typedef struct
 
 void ui_node_insert(ui_head_t *h, ui_node_t *n);
 
-void uisys_init(ui_system_t *b, input_t *in);
-void uisys_update(ui_system_t *b);
+void uisys_init(ui_system_t *uisys, input_t *in);
+void uisys_update(ui_system_t *uisys);
+
+ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size);
 
 #endif  /* UI_H_ */

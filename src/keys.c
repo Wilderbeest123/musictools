@@ -75,6 +75,9 @@ void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size)
     int i;
 
     for(i=0;i<12;i++)
-        if(k->notes[i].freq != 0.0)
+    {
+        if(k->notes[i].freq != 0.0) {
             sine_wave(&k->notes[i], buffer, size);
+        }
+    }
 }

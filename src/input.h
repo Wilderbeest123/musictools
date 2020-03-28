@@ -2,6 +2,7 @@
 #define INPUT_H_
 
 #include "screen.h"
+#include "frite.h"
 
 typedef struct
 {
@@ -10,7 +11,6 @@ typedef struct
     v2 dpos;                    /* Relative Mouse Location (Delta) */
     bool lPress;                /* Left Button is currenty pressed */
     bool rPress;                /* Right Button is currenty pressed */
-
 } mouse_t;
 
 typedef enum
@@ -28,6 +28,8 @@ typedef struct
     screen_t *s;
     mouse_t m;
     uint8_t ev;                 /* Input events bitmask */
+    midi_events_t *midi_ev;
+
 } input_t;
 
 void input_init(input_t *i, screen_t *s);

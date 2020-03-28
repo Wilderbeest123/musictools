@@ -10,53 +10,79 @@ void input_init(input_t *i, screen_t *s)
     i->m.ppos = i->m.pos;
 }
 
-void input_update(input_t *i)
+static inline void input_update_mouse(input_t *in, SDL_Event ev)
+{
+    if(ev.type == SDL_MOUSEMOTION) {
+        in->ev |= INEVENT_MMOTION;
+        in->m.ppos = in->m.pos;
+        SDL_GetMouseState(&in->m.pos.x, &in->m.pos.y);
+        SDL_GetRelativeMouseState(&in->m.dpos.x, &in->m.dpos.y);
+    }
+
+    if(ev.type == SDL_MOUSEBUTTONDOWN) {
+        if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            in->m.lPress = true;
+            in->ev |= INEVENT_LDOWN;
+        }
+
+        if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+            in->m.lPress = true;
+            in->ev |= INEVENT_RDOWN;
+        }
+
+    }
+
+    if(ev.type == SDL_MOUSEBUTTONUP) {
+        if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) == 0) {
+            in->m.lPress = false;
+            in->ev |= INEVENT_LUP;
+        }
+
+        if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+            in->m.rPress = false;
+            in->ev |= INEVENT_RUP;
+        }
+    }
+}
+
+static inline void input_update_keyboard(input_t *in, SDL_Event ev)
+{
+    const uint8_t *state;
+
+    if(ev.type == SDL_KEYDOWN) {
+        //printf("DOWN: %hhx\n", ev.key.keysym.sym);
+
+        if(ev.key.repeat == false)
+            in->midi_ev->press_on(in->midi_ev, ev.key.keysym.sym, 0x00);
+    }
+
+    if(ev.type == SDL_KEYUP) {
+        //printf("UP: %hhx\n", ev.key.keysym.sym);
+
+        if(ev.key.repeat == false)
+            in->midi_ev->press_off(in->midi_ev, ev.key.keysym.sym, 0x00);
+    }
+
+}
+
+void input_update(input_t *in)
 {
     SDL_Event ev;
 
     //Reset input events bitmask
-    i->ev = 0;
+    in->ev = 0;
 
     while(SDL_PollEvent(&ev))
     {
+        input_update_mouse(in, ev);
+        input_update_keyboard(in, ev);
+
         if(ev.type == SDL_WINDOWEVENT) {
             switch (ev.window.event)
             {
             case SDL_WINDOWEVENT_CLOSE:
-                i->s->close = true;
+                in->s->close = true;
                 break;
-            }
-        }
-
-        if(ev.type == SDL_MOUSEMOTION) {
-            i->ev |= INEVENT_MMOTION;
-            i->m.ppos = i->m.pos;
-            SDL_GetMouseState(&i->m.pos.x, &i->m.pos.y);
-            SDL_GetRelativeMouseState(&i->m.dpos.x, &i->m.dpos.y);
-        }
-
-        if(ev.type == SDL_MOUSEBUTTONDOWN) {
-            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                i->m.lPress = true;
-                i->ev |= INEVENT_LDOWN;
-            }
-
-            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-                i->m.lPress = true;
-                i->ev |= INEVENT_RDOWN;
-            }
-
-        }
-
-        if(ev.type == SDL_MOUSEBUTTONUP) {
-            if((SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) == 0) {
-                i->m.lPress = false;
-                i->ev |= INEVENT_LUP;
-            }
-
-            if(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-                i->m.rPress = false;
-                i->ev |= INEVENT_RUP;
             }
         }
     }

@@ -52,11 +52,9 @@ static void frite_print_hw_options(frite_t *hw)
     printf("Buffer Max Time: %lu\n", val);
 }
 
-void frite_open(frite_t *hw, midi_events_t *m)
+static void frite_midi_open(frite_t *hw, midi_events_t *m)
 {
-
     char *midi_dev = "hw:2,0,0"; //This appears to not change
-    char *playback_dev = "default";
     int result = 0;
 
     //Midi In
@@ -69,12 +67,24 @@ void frite_open(frite_t *hw, midi_events_t *m)
 
     //Set the MIDI event handle
     hw->midi_ev = m;
+}
+
+void frite_open(frite_t *hw, midi_events_t *m, bool midi_en)
+{
+    char *playback_dev = "default";
+    int result = 0;
+
+    if(midi_en)
+        frite_midi_open(hw, m);
+    else
+        hw->midi_ev = NULL;
 
     //Audio Out
     hw->pback_out.sample_fmt = SND_PCM_FORMAT_S16;
     hw->pback_out.sample_rate = 44100;
     hw->pback_out.buffer_time = 200000;
     hw->pback_out.period_time = 50000;
+    hw->out_buffer = calloc(hw->pback_out.period_size, sizeof(uint16_t));
 
     int dir; //Uncertain why required, keep here for now
 

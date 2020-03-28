@@ -34,16 +34,19 @@ typedef struct
     snd_pcm_t *audio_out;
     snd_pcm_hw_params_t *params_out;
     pback_settings_t pback_out;
+    uint16_t *out_buffer;
 
     //midi
     snd_rawmidi_t *midi_in;
     midi_events_t *midi_ev;
+    bool midi_en;
+
 } frite_t;
 
 void print_pback_settings();
 pback_settings_t pback_settings();
 
-void frite_open(frite_t *hw, midi_events_t *m);
+void frite_open(frite_t *hw, midi_events_t *m, bool midi_en);
 void frite_read(frite_t *hw);
 
 #endif  /* FRITE_H_ */
