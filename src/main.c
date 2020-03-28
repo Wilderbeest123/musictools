@@ -14,8 +14,36 @@
 #include "button.h"
 #include "ui.h"
 
-
 int main(void)
+{
+    //Screen/UI
+    screen_t s;
+    input_t in;
+    shapes_t sh;
+    ui_system_t uisys;
+
+    //Screen/UI init
+    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
+    input_init(&in, &s, false);
+    shapes_init(&sh);
+    uisys_init(&uisys, &in);
+
+    gl_charset_t cset = gl_load_charset("res/OpenSans-Regular.ttf", 30, 128);
+
+    while(s.close == false)
+    {
+        input_update(&in);
+        uisys_update(&uisys);
+
+        text_draw(&cset, 100, 100, "gently");
+        screen_swap_buffer(&s);
+    }
+
+    return 0;
+}
+
+
+void main_loop()
 {
     //Screen/UI
     screen_t s;
@@ -27,12 +55,14 @@ int main(void)
     frite_t hw;
     keyboard_t k;
 
+    //Sound init
     keys_init(&k);
     in.midi_ev = &k.ev;
     frite_open(&hw, NULL, false);
 
+    //Screen/UI init
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
-    input_init(&in, &s);
+    input_init(&in, &s, true);
     shapes_init(&sh);
     uisys_init(&uisys, &in);
 
@@ -56,40 +86,4 @@ int main(void)
         snd_rawmidi_drain(hw.midi_in);
         snd_rawmidi_close(hw.midi_in);
     }
-
-    return 0;
-}
-
-void music_loop(void)
-{
-    keyboard_t k;
-    frite_t hw;
-    jtime_t timer;
-    uint16_t *out_buffer;
-
-    keys_init(&k);
-    frite_open(&hw, &k.ev, false);
-    print_pback_settings();
-
-    timer_init(&timer, 20);
-    out_buffer = calloc(hw.pback_out.period_size, sizeof(uint16_t));
-
-    while(1)
-    {
-        if(timer_check(&timer)){
-            //print_time();
-            frite_read(&hw);
-            keys_print_notes(&k);
-
-            //Only write if space availabe in audio buffer.
-            if(snd_pcm_avail(hw.audio_out) > hw.pback_out.period_size)
-            {
-                //Zeroize buffer prior to populating with data.
-                memset(out_buffer, 0, hw.pback_out.period_size*sizeof(uint16_t));
-                keys_populate_buffer(&k, out_buffer, hw.pback_out.period_size);
-                snd_pcm_writei(hw.audio_out, out_buffer, hw.pback_out.period_size);
-            }
-        }
-    }
-
 }

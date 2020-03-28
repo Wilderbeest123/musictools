@@ -29,10 +29,10 @@ typedef struct
     mouse_t m;
     uint8_t ev;                 /* Input events bitmask */
     midi_events_t *midi_ev;
-
+    bool midi_en;
 } input_t;
 
-void input_init(input_t *i, screen_t *s);
+void input_init(input_t *i, screen_t *s, bool midi_en);
 void input_update(input_t *i);
 
 bool input_check_sel(v2 mpos, v2 pos, v2 size);

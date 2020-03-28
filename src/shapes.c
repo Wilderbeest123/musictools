@@ -291,3 +291,73 @@ uint32_t gl_load_image(char *filename)
     SDL_FreeSurface(s);
     return t;
 }
+
+static inline gl_char_t charset_get_char(gl_charset_t *cset, char c)
+{
+    for(int i=0; i<cset->num; i++)
+        if(cset->chars[i].c == c)
+            return cset->chars[i];
+
+    printf("ERROR: Char %c not supported\n", c);
+}
+
+void text_draw(gl_charset_t *cset, int x, int y, char *text)
+{
+    gl_char_t c;
+    v2 pos = V2(x,y);
+    gl_color_t color = COLOR_INIT(255,255,255,255);
+
+    for(char *tptr=text; *tptr; tptr++)
+    {
+        c = charset_get_char(cset, *tptr);
+
+        glBindTexture(GL_TEXTURE_2D, c.tid);
+        square_draw(pos.x, pos.y, c.size.x, c.size.y, color);
+        pos.x += c.advance;
+    }
+}
+
+gl_charset_t gl_load_charset(char *filename, uint8_t start, uint8_t finish)
+{
+    TTF_Font *f;
+    SDL_Surface *s;
+    SDL_Color color = {255, 255, 255, 255};
+    gl_charset_t cset;
+    gl_char_t *c_ptr;
+    int minx, miny, maxx, maxy, advance;
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    f = TTF_OpenFont(filename, 72);
+    assert(f);
+
+    cset.filename = filename;
+    cset.num = finish-start;
+    cset.chars = malloc((cset.num)*sizeof(gl_char_t));
+    c_ptr = cset.chars;
+
+    for(uint8_t i=start; i<finish; i++)
+    {
+        if(TTF_GlyphMetrics(f, i, &minx, &maxx, &miny, &maxy, &advance) == -1)
+            printf("%s\n", TTF_GetError());
+
+        glGenTextures(1, &c_ptr->tid);
+        glBindTexture(GL_TEXTURE_2D, c_ptr->tid);
+
+        s = TTF_RenderGlyph_Blended(f, i, color);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        c_ptr->c = (char)i;
+        c_ptr->size = V2(s->w, s->h);
+        c_ptr->offset = V2(minx, miny);
+        c_ptr->advance = advance;
+
+        free(s);
+        c_ptr++;
+    }
+
+    free(f);
+    return cset;
+}

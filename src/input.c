@@ -1,17 +1,23 @@
 #include "input.h"
 #include "box.h"
 
-void input_init(input_t *i, screen_t *s)
+void input_init(input_t *i, screen_t *s, bool midi_en)
 {
     i->s = s;
 
     i->m.pos.x = 0;
     i->m.pos.y = 0;
     i->m.ppos = i->m.pos;
+
+    if(midi_en)
+        i->midi_en = true;
+    else
+        i->midi_en = false;
 }
 
 static inline void input_update_mouse(input_t *in, SDL_Event ev)
 {
+
     if(ev.type == SDL_MOUSEMOTION) {
         in->ev |= INEVENT_MMOTION;
         in->m.ppos = in->m.pos;
@@ -48,6 +54,9 @@ static inline void input_update_mouse(input_t *in, SDL_Event ev)
 static inline void input_update_keyboard(input_t *in, SDL_Event ev)
 {
     const uint8_t *state;
+
+    if(in->midi_en == false)
+        return;
 
     if(ev.type == SDL_KEYDOWN) {
         //printf("DOWN: %hhx\n", ev.key.keysym.sym);

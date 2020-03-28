@@ -42,6 +42,21 @@ typedef struct
     uint32_t tid;                /* ID which represents a stored OpenGL texture */
 } gl_texture_t;
 
+typedef struct
+{
+    char c;
+    uint32_t tid;
+    v2 size;
+    v2 offset;
+    uint16_t advance;
+} gl_char_t;
+
+typedef struct
+{
+    char *filename;
+    gl_char_t *chars;
+    uint8_t num;                /* Number of chars loaded */
+} gl_charset_t;
 
 typedef struct
 {
@@ -57,8 +72,10 @@ void img_draw(int x, int y, int width, int height);
 void square_draw(int x, int y, int width, int height, gl_color_t c);
 void tri_draw(int x, int y, int width, int height, gl_color_t c);
 void circle_draw(int x, int y, int width, int height, gl_color_t c);
+void text_draw(gl_charset_t *cset, int x, int y, char *text);
 
 uint32_t gl_load_font(char *filename, int fontsize);
 uint32_t gl_load_image(char *filename);
+gl_charset_t gl_load_charset(char *filename, uint8_t start, uint8_t finish);
 
 #endif  /* SHAPES_H_ */
