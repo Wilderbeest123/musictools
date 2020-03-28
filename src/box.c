@@ -3,6 +3,7 @@
 #include "frite.h"
 #include "ui.h"
 #include "button.h"
+#include "textbox.h"
 
 static ui_node_t* box_ui_select(ui_node_t *node, v2 mpos);
 static void box_ui_draw(ui_node_t *node, v2 pos);
@@ -43,12 +44,18 @@ ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c)
     this->b.tid = tid;
     this->b.col = c;
 
-    this->b.tid = gl_load_image("res/brick.png");
+    this->b.tid = gl_load_image("res/white.png");
     this->b.n.ops = &box_ui_ops;
     this->b.n.next = NULL;
     this->h.first = NULL;
 
     nptr = button_init(V2(0,0),V2(32,32), gl_load_image("res/yoda.png"), ui_button_callback, this);
+    ui_node_insert(&this->h, nptr);
+
+    gl_charset_t cset = gl_load_charset("res/OpenSans-Regular.ttf", 24, 30, 128);
+    char *str = "hello";
+
+    nptr = textbox_init(V2(2,38), V2(100,28), cset, str, strlen(str));
     ui_node_insert(&this->h, nptr);
 
     return &this->b.n;

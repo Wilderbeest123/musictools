@@ -17,6 +17,7 @@ typedef struct
   input_t *in;
   ui_head_t h;                /* Head of linked box nodes */
   ui_node_t *select;          /* Reference to currently selected node. */
+  ui_node_t *psel;            /* Reference to the previous selected node. */
 
 } ui_system_t;
 

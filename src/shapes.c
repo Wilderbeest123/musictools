@@ -301,11 +301,10 @@ static inline gl_char_t charset_get_char(gl_charset_t *cset, char c)
     printf("ERROR: Char %c not supported\n", c);
 }
 
-void text_draw(gl_charset_t *cset, int x, int y, char *text)
+void text_draw(gl_charset_t *cset, int x, int y, char *text, gl_color_t color)
 {
     gl_char_t c;
     v2 pos = V2(x,y);
-    gl_color_t color = COLOR_INIT(255,255,255,255);
 
     for(char *tptr=text; *tptr; tptr++)
     {
@@ -317,7 +316,7 @@ void text_draw(gl_charset_t *cset, int x, int y, char *text)
     }
 }
 
-gl_charset_t gl_load_charset(char *filename, uint8_t start, uint8_t finish)
+gl_charset_t gl_load_charset(char *filename, int size, uint8_t start, uint8_t finish)
 {
     TTF_Font *f;
     SDL_Surface *s;
@@ -329,7 +328,7 @@ gl_charset_t gl_load_charset(char *filename, uint8_t start, uint8_t finish)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    f = TTF_OpenFont(filename, 72);
+    f = TTF_OpenFont(filename, size);
     assert(f);
 
     cset.filename = filename;

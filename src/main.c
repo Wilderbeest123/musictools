@@ -28,14 +28,10 @@ int main(void)
     shapes_init(&sh);
     uisys_init(&uisys, &in);
 
-    gl_charset_t cset = gl_load_charset("res/OpenSans-Regular.ttf", 30, 128);
-
     while(s.close == false)
     {
         input_update(&in);
         uisys_update(&uisys);
-
-        text_draw(&cset, 100, 100, "gently");
         screen_swap_buffer(&s);
     }
 

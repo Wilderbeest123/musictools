@@ -55,20 +55,20 @@ static inline void input_update_keyboard(input_t *in, SDL_Event ev)
 {
     const uint8_t *state;
 
-    if(in->midi_en == false)
-        return;
-
     if(ev.type == SDL_KEYDOWN) {
-        //printf("DOWN: %hhx\n", ev.key.keysym.sym);
+        in->ev |= INEVENT_KDOWN;
+        printf("DOWN: %hhx\n", ev.key.keysym.sym);
+        in->key = ev.key.keysym.sym;
 
-        if(ev.key.repeat == false)
+        if(ev.key.repeat == false && in->midi_en)
             in->midi_ev->press_on(in->midi_ev, ev.key.keysym.sym, 0x00);
     }
 
     if(ev.type == SDL_KEYUP) {
-        //printf("UP: %hhx\n", ev.key.keysym.sym);
+        in->ev |= INEVENT_KUP;
+        printf("UP: %c\n", ev.key.keysym.sym);
 
-        if(ev.key.repeat == false)
+        if(ev.key.repeat == false && in->midi_en)
             in->midi_ev->press_off(in->midi_ev, ev.key.keysym.sym, 0x00);
     }
 

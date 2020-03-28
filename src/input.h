@@ -19,8 +19,9 @@ typedef enum
     INEVENT_LUP=0x02,
     INEVENT_MMOTION=0x04,
     INEVENT_RDOWN=0x08,
-    INEVENT_RUP=0x16,
-
+    INEVENT_RUP=0x10,
+    INEVENT_KDOWN=0x20,
+    INEVENT_KUP=0x40,
 } input_events_t;
 
 typedef struct
@@ -28,13 +29,14 @@ typedef struct
     screen_t *s;
     mouse_t m;
     uint8_t ev;                 /* Input events bitmask */
+
+    char key;                   /* Latest key pressed on keyboard */
     midi_events_t *midi_ev;
     bool midi_en;
 } input_t;
 
 void input_init(input_t *i, screen_t *s, bool midi_en);
 void input_update(input_t *i);
-
 bool input_check_sel(v2 mpos, v2 pos, v2 size);
 
 #endif  /* INPUT_H_ */

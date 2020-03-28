@@ -19,6 +19,8 @@ void uisys_init(ui_system_t *uisys, input_t *in)
 {
     uisys->in = in;
     uisys->h.first = NULL;
+    uisys->psel = NULL;
+    uisys->select = NULL;
 }
 
 ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
@@ -49,9 +51,12 @@ static void uisys_handle_ldown(ui_system_t *uisys, v2 pos)
         }
     }
 
+    if(uisys->psel && uisys->psel != uisys->select && uisys->psel->ops->unselect)
+        uisys->psel->ops->unselect(uisys->psel);
+
     if(append) {
-        size.x = SCREEN_WIDTH/10;
-        size.y = SCREEN_HEIGHT/10;
+        size.x = 160;
+        size.y = 120;
         uisys->select = uisys_append(uisys, pos, size);
     }
 }
@@ -63,11 +68,13 @@ void uisys_update(ui_system_t *uisys)
     v2 pos = V2(0,0);
 
     //Handle input events
-    if(in->ev & INEVENT_LDOWN)
+    if(in->ev & INEVENT_LDOWN) {
         uisys_handle_ldown(uisys, in->m.pos);
+    }
 
-    if(in->ev & INEVENT_LUP)
-        uisys->select = NULL;
+    if(in->ev & INEVENT_LUP) {
+        uisys->psel = uisys->select;
+    }
 
     //Handle selected UI element.
     if(uisys->select != NULL && uisys->select->ops->update != NULL)

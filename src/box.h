@@ -28,10 +28,7 @@ typedef struct
     v2 pos;
     v2 size;
     unsigned int tid;           /* ID of the texture to render */
-
     gl_color_t col;
-    bool sel;                   /* true if box has been selected */
-
     ui_node_t n;
 } box_t;
 
