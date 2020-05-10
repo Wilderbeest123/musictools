@@ -122,7 +122,7 @@ static ui_node_t* box_ui_select(ui_node_t *node, v2 mpos)
     return NULL;
 }
 
-static inline void box_draw(box_t b)
+void box_draw(box_t b)
 {
     square_draw(b.pos.x, b.pos.y, b.size.x, b.size.y, b.col);
 }

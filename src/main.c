@@ -13,7 +13,9 @@
 #include "box.h"
 #include "button.h"
 #include "ui.h"
+#include "toolbar.h"
 
+/*
 int main(void)
 {
     //Screen/UI
@@ -28,6 +30,8 @@ int main(void)
     shapes_init(&sh);
     uisys_init(&uisys, &in);
 
+    toolbar_init(&uisys);
+
     while(s.close == false)
     {
         input_update(&in);
@@ -37,9 +41,60 @@ int main(void)
 
     return 0;
 }
+*/
 
+gl_model_t waveform_init(void)
+{
+    gl_model_t m = MODEL_INIT();
+    tone_t t;
+    int16_t buf[1000] = {0};
+    float step;
+    GLfloat *vpos, *tcoord;
+    int i;
 
-void main_loop()
+    tone_init(&t, 880.0);
+    square_wave(&t, buf, 1000);
+    tri_wave(&t, buf, 1000);
+
+    m.v_len = 1000;
+    m.v_type = GL_LINE_STRIP;
+
+    step = 2.0/1000.0;
+
+    vpos = (GLfloat *)malloc(sizeof(GLfloat)*3*(m.v_len));
+    tcoord = (GLfloat *)malloc(sizeof(GLfloat)*2*(m.v_len));
+
+    for(i=0; i<1000; i++)
+    {
+        (vpos+3*i)[0] =-1.0 + step*i;
+        (vpos+3*i)[1] = (float)buf[i]/t.maxval;
+        (vpos+3*i)[2] = 0.0f;
+
+        (tcoord+2*i)[0] = 0.0f;
+        (tcoord+2*i)[1] = 0.0f;
+    }
+
+    for(i=0; i<999; i++)
+    {
+        printf("%.2f %.2f %.2f\n",
+               (vpos+3*i)[0],(vpos+3*i)[1],(vpos+3*i)[2]);
+    }
+
+    //Init VAO
+    glGenVertexArrays(1, &m.vao);
+    glBindVertexArray(m.vao);
+
+    //Init VBOs
+    model_init_vpos(&m.vpos, vpos, 3*m.v_len);
+    model_init_tcoord(&m.tcoord, tcoord, 2*m.v_len);
+
+    glBindVertexArray(0); //Unbind VAO
+    free(vpos);
+    free(tcoord);
+    return m;
+}
+
+int main(void)
 {
     //Screen/UI
     screen_t s;
@@ -62,24 +117,16 @@ void main_loop()
     shapes_init(&sh);
     uisys_init(&uisys, &in);
 
+    gl_model_t w = waveform_init();
+
     while(s.close == false)
     {
         input_update(&in);
         uisys_update(&uisys);
+
+        model_uniform_color(COLOR_INIT(255, 0, 0, 255));
+        model_draw(w, 0, 0, 800, 600, true);
+
         screen_swap_buffer(&s);
-
-        //Only write if space availabe in audio buffer.
-        if(snd_pcm_avail(hw.audio_out) > hw.pback_out.period_size)
-        {
-            //Zeroize buffer prior to populating with data.
-            memset(hw.out_buffer, 0, hw.pback_out.period_size*sizeof(uint16_t));
-            keys_populate_buffer(&k, hw.out_buffer, hw.pback_out.period_size);
-            snd_pcm_writei(hw.audio_out, hw.out_buffer, hw.pback_out.period_size);
-        }
-    }
-
-    if(hw.midi_ev) {
-        snd_rawmidi_drain(hw.midi_in);
-        snd_rawmidi_close(hw.midi_in);
     }
 }

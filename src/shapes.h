@@ -15,8 +15,11 @@ typedef struct
     GLfloat a;
 } gl_color_t;
 
-#define COLOR_INIT(R,G,B,A) \
-    {.r=(GLfloat)R/255.0, .g=(GLfloat)G/255.0, .b=(GLfloat)B/255.0, .a=(GLfloat)A/255.0}
+static inline gl_color_t COLOR_INIT(int r, int g, int b, int a)
+{
+    gl_color_t color = {.r=(GLfloat)r/255.0, .g=(GLfloat)g/255.0, .b=(GLfloat)b/255.0, .a=(GLfloat)a/255.0};
+    return color;
+}
 
 typedef struct
 {
@@ -34,6 +37,11 @@ typedef struct
 } gl_model_t;
 
 #define MODEL_INIT() { .vao=0, .vpos=0, .vcolor=0, .ebo=0, .e_len=0, .v_len=0 }
+
+void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len);
+void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len);
+void model_draw(gl_model_t s, int x, int y, int width, int height, bool use_tcoord);
+void model_uniform_color(gl_color_t c);
 
 /* TO BE IMPLEMENTED */
 typedef struct
@@ -64,6 +72,9 @@ typedef struct
     gl_model_t square;
     gl_model_t triangle;
     gl_model_t circle;
+
+    uint32_t unitex;               /* A Uniform texture */
+
 } shapes_t;
 
 void shapes_init(shapes_t *s);

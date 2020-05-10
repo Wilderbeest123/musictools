@@ -27,7 +27,7 @@ static void model_init_vcolor(GLuint *vbo, gl_color_t c, int len)
     free(vcolor);
 }
 
-static void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
+void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
 {
     //Init vertex pos buffer
     glGenBuffers(1, vbo);
@@ -39,7 +39,7 @@ static void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len)
     glVertexAttribPointer(VERT_ATTR_POS, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-static void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len)
+void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len)
 {
     //Init texture coord buffer
     glGenBuffers(1, vbo);
@@ -170,20 +170,24 @@ static void model_uniform_pos(int x, int y, int width, int height)
     glProgramUniformMatrix4fv(gShapes->gl->p, VERT_UNIFORM_MODEL, 1, GL_FALSE, (GLfloat*)ortho);
 }
 
-static inline void model_uniform_color(gl_color_t c)
+void model_uniform_color(gl_color_t c)
 {
     glProgramUniform1i(gShapes->gl->p, VERT_UNIFORM_COLOR_EN, true);
     glProgramUniform4fv(gShapes->gl->p, VERT_UNIFORM_COLOR, 1, (GLfloat*)&c);
 }
 
-static inline void model_draw(gl_model_t s, int x, int y, int width, int height, bool use_tcoord)
+void model_draw(gl_model_t s, int x, int y, int width, int height, bool use_tcoord)
 {
     glBindVertexArray(s.vao);
 
-    if(use_tcoord)
+    if(use_tcoord) {
         glEnableVertexAttribArray(VERT_ATTR_TCOORD);
-    else
-        glDisableVertexAttribArray(VERT_ATTR_TCOORD);
+    }
+    else {
+        /* There is no texture for this model so bind
+           the uniform texture in order to draw. */
+        glBindTexture(GL_TEXTURE_2D, gShapes->unitex);
+    }
 
     model_uniform_pos(x, y, width, height);
 
@@ -201,6 +205,8 @@ void shapes_init(shapes_t *s)
     s->square = model_init_square();
     s->triangle = model_init_triangle();
     s->circle = model_init_circle();
+
+    s->unitex = gl_load_image("res/white.png");
 
     /*
     printf("%u, %u, %u, %u\n", s->square.vao, s->square.vpos, s->square.vcolor, s->square.ebo);

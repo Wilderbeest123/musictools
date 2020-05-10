@@ -33,6 +33,40 @@ ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
     return nptr;
 }
 
+void ui_draw(ui_node_t *node, v2 pos)
+{
+  ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
+  ui_node_t *nptr;
+
+  glBindTexture(GL_TEXTURE_2D, this->b.tid);
+  box_draw(this->b);
+
+  for(nptr=this->h.first; nptr; nptr=nptr->next)
+    nptr->ops->draw(nptr, this->b.pos);
+}
+
+ui_node_t* ui_select(ui_node_t *node, v2 mpos)
+{
+  ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
+  ui_node_t *nptr;
+  v2 rpos;
+
+  if(input_check_sel(mpos, this->b.pos, this->b.size))
+    {
+      rpos = V2_DEL(mpos, this->b.pos);
+
+      for(nptr=this->h.first; nptr; nptr=nptr->next)
+        {
+          if(nptr->ops->select(nptr, rpos))
+            return nptr;
+        }
+
+      return node;
+    }
+
+  return NULL;
+}
+
 static void uisys_handle_ldown(ui_system_t *uisys, v2 pos)
 {
     bool append = true;
@@ -57,7 +91,7 @@ static void uisys_handle_ldown(ui_system_t *uisys, v2 pos)
     if(append) {
         size.x = 160;
         size.y = 120;
-        uisys->select = uisys_append(uisys, pos, size);
+        //uisys->select = uisys_append(uisys, pos, size);
     }
 }
 

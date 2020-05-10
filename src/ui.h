@@ -22,6 +22,8 @@ typedef struct
 } ui_system_t;
 
 void ui_node_insert(ui_head_t *h, ui_node_t *n);
+void ui_draw(ui_node_t *node, v2 pos);
+ui_node_t* ui_select(ui_node_t *node, v2 mpos);
 
 void uisys_init(ui_system_t *uisys, input_t *in);
 void uisys_update(ui_system_t *uisys);

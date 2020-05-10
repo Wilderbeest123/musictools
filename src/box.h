@@ -35,5 +35,6 @@ typedef struct
 bound_t box_bound_get(v2 pos, v2 size);
 
 ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c);
+void box_draw(box_t b);
 
 #endif  /* BOX_H_ */

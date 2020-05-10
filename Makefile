@@ -9,7 +9,9 @@ SRC_FILES = main.c \
 						box.c \
 						button.c \
 						ui.c \
-						textbox.c
+						textbox.c \
+						toolbar.c
+
 
 INCLUDE_DIRS = -I /usr/include/alsa \
 							 -I/usr/local/include/SDL2
