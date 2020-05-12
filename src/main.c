@@ -27,13 +27,13 @@ typedef struct
 
 } waveform_t;
 
-void waveform_init(waveform_t *w)
+void waveform_init(waveform_t *w, int num_periods, int size)
 {
     int i, bsize;
     GLfloat *tcoord;
 
-    bsize = 1000;
-    w->num_periods = 10;
+    bsize = size;
+    w->num_periods = num_periods;
     w->psize = bsize/w->num_periods;
     w->maxval = pback_maxval();
 
@@ -126,9 +126,10 @@ void waveform_update(waveform_t *w, int16_t *buf, uint16_t period)
         w->idx = 0;
 }
 
+waveform_t w1,w2,w3,w4;
+
 int main(void)
 {
-
     //Screen/UI
     screen_t s;
     input_t in;
@@ -141,43 +142,56 @@ int main(void)
 
     //Sound init
     keys_init(&k);
-    in.midi_ev = &k.ev;
-    frite_open(&hw, NULL, false);
+    //in.midi_ev = &k.ev;
+    frite_open(&hw, &k.ev, true);
 
     //Screen/UI init
     screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
-    input_init(&in, &s, true);
+    input_init(&in, &s, false);
     shapes_init(&sh);
     uisys_init(&uisys, &in);
 
-    print_pback_settings();
+    //waveform_t w1,w3,w4;
 
-    tone_t t;
+    //waveform_t w1;
+    waveform_init(&w1, 100, 1000);
+    waveform_init(&w2, 5, 10000);
+    waveform_init(&w3, 2, 5000);
+    waveform_init(&w4, 1, 500);
+
     int16_t buf[2205] = {0};
-    tone_init(&t, 100.0);
-    waveform_t w;
-    waveform_init(&w);
 
     while(s.close == false)
     {
         input_update(&in);
         uisys_update(&uisys);
+        frite_read(&hw);
 
-        if(in.ev & INEVENT_KDOWN) {
-            memset(buf, 0, 2205*sizeof(int16_t));
-            tri_wave(&t, buf, 2205);
-            square_wave(&t, buf, 2205);
-            waveform_update(&w, buf, 2205);
+        //Only write if space availabe in audio buffer.
+        if(snd_pcm_avail(hw.audio_out) > hw.pback_out.period_size)
+        {
+            //Zeroize buffer prior to populating with data.
+            memset(buf, 0, hw.pback_out.period_size*sizeof(uint16_t));
+
+            keys_populate_buffer(&k, buf, hw.pback_out.period_size);
+            snd_pcm_writei(hw.audio_out, buf, hw.pback_out.period_size);
+            waveform_update(&w1, buf, 2205);
+            waveform_update(&w2, buf, 2205);
+            waveform_update(&w3, buf, 2205);
+            waveform_update(&w4, buf, 2205);
         }
 
-        if(1) {
-            memset(buf, 0, 2205*sizeof(int16_t));
-            tri_wave(&t, buf, 2205);
-            waveform_update(&w, buf, 2205);
-        }
+        model_uniform_color(COLOR_INIT(255, 255, 0, 255));
+        model_draw(w1.m, 0, 0, 400, 300, false);
 
         model_uniform_color(COLOR_INIT(255, 0, 0, 255));
-        model_draw(w.m, 0, 0, 800, 600, false);
+        model_draw(w2.m, 400, 0, 400, 300, false);
+
+        model_uniform_color(COLOR_INIT(255, 0, 255, 255));
+        model_draw(w3.m, 400, 300, 400, 300, false);
+
+        model_uniform_color(COLOR_INIT(0, 0, 255, 255));
+        model_draw(w4.m, 0, 300, 400, 300, false);
 
         screen_swap_buffer(&s);
     }
