@@ -45,6 +45,7 @@ typedef struct
 
 void print_pback_settings();
 pback_settings_t pback_settings();
+int pback_maxval();
 
 void frite_open(frite_t *hw, midi_events_t *m, bool midi_en);
 void frite_read(frite_t *hw);

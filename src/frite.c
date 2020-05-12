@@ -7,6 +7,14 @@ pback_settings_t pback_settings()
     return *playback_settings;
 }
 
+int pback_maxval()
+{
+    pback_settings_t pback = pback_settings();
+    int format_bits = snd_pcm_format_width(pback.sample_fmt);
+    int maxval = (1 << (format_bits - 1)) - 1;
+    return maxval;
+}
+
 void print_pback_settings(void)
 {
     printf("Sample Rate: %lu samples/sec\n", playback_settings->sample_rate);
