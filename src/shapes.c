@@ -298,7 +298,7 @@ uint32_t gl_load_image(char *filename)
     return t;
 }
 
-static inline gl_char_t charset_get_char(gl_charset_t *cset, char c)
+gl_char_t charset_get_char(gl_charset_t *cset, char c)
 {
     for(int i=0; i<cset->num; i++)
         if(cset->chars[i].c == c)

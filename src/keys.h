@@ -3,6 +3,7 @@
 
 #include "frite.h"
 #include "sound.h"
+#include "shapes.h"
 
 typedef struct
 {
@@ -14,5 +15,7 @@ typedef struct
 void keys_init(keyboard_t *k);
 void keys_print_notes(keyboard_t *k);
 void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size);
+
+void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset);
 
 #endif  /* KEYS_H_ */

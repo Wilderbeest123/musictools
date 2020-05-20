@@ -26,7 +26,7 @@ typedef struct
 
 ui_node_t* textbox_init(v2 pos, v2 size, gl_charset_t cset, char *str);
 
-void textbox_add(v2 pos, v2 size, gl_charset_t cset, char *str);
+void textbox_add(v2 pos, v2 size, char *str);
 
 
 #endif  /* TEXTBOX_H_ */

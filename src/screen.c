@@ -221,6 +221,6 @@ void screen_init(screen_t *s, int width, int height)
 void screen_swap_buffer(screen_t *s)
 {
     SDL_GL_SwapWindow(s->sdl.window);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.7f, 0.7f, 0.7f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }

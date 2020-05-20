@@ -128,10 +128,13 @@ ui_node_t* textbox_init(v2 pos, v2 size, gl_charset_t cset, char *str)
     return &this->n;
 }
 
-void textbox_add(v2 pos, v2 size, gl_charset_t cset, char *str)
+void textbox_add(v2 pos, v2 size, char *str)
 {
     ui_node_t *nptr;
-    nptr = textbox_init(pos, size, cset, str);
+    gl_charset_t *cset = calloc(1, sizeof(gl_charset_t));
+
+    *cset = gl_load_charset("res/OpenSans-Regular.ttf", 24, 30, 128);
+    nptr = textbox_init(pos, size, *cset, str);
     uisys_append(nptr);
 }
 

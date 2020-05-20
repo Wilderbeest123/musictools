@@ -87,6 +87,7 @@ int text_draw(gl_charset_t *cset, int x, int y, char *text, gl_color_t color);
 
 uint32_t gl_load_font(char *filename, int fontsize);
 uint32_t gl_load_image(char *filename);
+gl_char_t charset_get_char(gl_charset_t *cset, char c);
 gl_charset_t gl_load_charset(char *filename, int size, uint8_t start, uint8_t finish);
 
 #endif  /* SHAPES_H_ */
