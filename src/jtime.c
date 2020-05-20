@@ -84,3 +84,8 @@ int timer_check(jtime_t *t)
 
     return 0;
 }
+
+void timer_reset(jtime_t *t)
+{
+    t->ev = get_time();
+}

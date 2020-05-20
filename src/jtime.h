@@ -3,7 +3,6 @@
 
 #include <time.h>
 
-
 void print_time(void);
 struct timespec get_time(void);
 int time_elapsed(struct timespec delta, struct timespec period);
@@ -17,5 +16,6 @@ typedef struct
 
 void timer_init(jtime_t *t, int period_msec);
 int timer_check(jtime_t *t);
+void timer_reset(jtime_t *t);
 
 #endif  /* JTIME_H_ */

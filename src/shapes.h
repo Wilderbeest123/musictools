@@ -83,7 +83,7 @@ void img_draw(int x, int y, int width, int height);
 void square_draw(int x, int y, int width, int height, gl_color_t c);
 void tri_draw(int x, int y, int width, int height, gl_color_t c);
 void circle_draw(int x, int y, int width, int height, gl_color_t c);
-void text_draw(gl_charset_t *cset, int x, int y, char *text, gl_color_t color);
+int text_draw(gl_charset_t *cset, int x, int y, char *text, gl_color_t color);
 
 uint32_t gl_load_font(char *filename, int fontsize);
 uint32_t gl_load_image(char *filename);

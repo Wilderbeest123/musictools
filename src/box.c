@@ -55,7 +55,7 @@ ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c)
     gl_charset_t cset = gl_load_charset("res/OpenSans-Regular.ttf", 24, 30, 128);
     char *str = "hello";
 
-    nptr = textbox_init(V2(2,38), V2(100,28), cset, str, strlen(str));
+    nptr = textbox_init(V2(2,38), V2(100,28), cset, str);
     ui_node_insert(&this->h, nptr);
 
     return &this->b.n;

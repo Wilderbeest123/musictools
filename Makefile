@@ -10,7 +10,8 @@ SRC_FILES = main.c \
 						button.c \
 						ui.c \
 						textbox.c \
-						toolbar.c
+						toolbar.c \
+						wform.c
 
 
 INCLUDE_DIRS = -I /usr/include/alsa \

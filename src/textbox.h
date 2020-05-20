@@ -3,6 +3,7 @@
 
 #include "shapes.h"
 #include "ui.h"
+#include "jtime.h"
 
 typedef struct
 {
@@ -18,8 +19,14 @@ typedef struct
     char text[64];              /* The character buffer */
     gl_charset_t cset;
 
+    jtime_t timer;
+    bool l_show;
+
 } textbox_t;
 
-ui_node_t* textbox_init(v2 pos, v2 size, gl_charset_t cset, char *str, int strlen);
+ui_node_t* textbox_init(v2 pos, v2 size, gl_charset_t cset, char *str);
+
+void textbox_add(v2 pos, v2 size, gl_charset_t cset, char *str);
+
 
 #endif  /* TEXTBOX_H_ */

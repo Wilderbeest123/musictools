@@ -1,6 +1,8 @@
 #include "ui.h"
 #include "frite.h"
 
+static ui_system_t *gsys;
+
 void ui_node_insert(ui_head_t *h, ui_node_t *n)
 {
     ui_node_t *ptr;
@@ -21,9 +23,10 @@ void uisys_init(ui_system_t *uisys, input_t *in)
     uisys->h.first = NULL;
     uisys->psel = NULL;
     uisys->select = NULL;
+    gsys = uisys;
 }
 
-ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
+ui_node_t* uisys_box_append(ui_system_t *uisys, v2 pos, v2 size)
 {
     gl_color_t c = COLOR_INIT(255,255,127,255);
     ui_node_t *nptr;
@@ -31,6 +34,12 @@ ui_node_t* uisys_append(ui_system_t *uisys, v2 pos, v2 size)
     nptr = box_init(pos, size, 0, c);
     ui_node_insert(&uisys->h, nptr);
     return nptr;
+}
+
+ui_node_t* uisys_append(ui_node_t *n)
+{
+    ui_node_insert(&gsys->h, n);
+    return n;
 }
 
 void ui_draw(ui_node_t *node, v2 pos)
