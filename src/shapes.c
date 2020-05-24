@@ -298,6 +298,26 @@ uint32_t gl_load_image(char *filename)
     return t;
 }
 
+
+uint32_t gl_load_image_rgba(char *filename)
+{
+  uint32_t t;
+  SDL_Surface *s = IMG_Load(filename);
+  assert(s);
+
+  glGenTextures(1, &t);
+  glBindTexture(GL_TEXTURE_2D, t);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s->w, s->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, s->pixels);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  SDL_FreeSurface(s);
+  return t;
+}
+
 gl_char_t charset_get_char(gl_charset_t *cset, char c)
 {
     for(int i=0; i<cset->num; i++)
@@ -341,6 +361,7 @@ gl_charset_t gl_load_charset(char *filename, int size, uint8_t start, uint8_t fi
 
     cset.filename = filename;
     cset.num = finish-start;
+    cset.rsize = size;
     cset.chars = malloc((cset.num)*sizeof(gl_char_t));
     c_ptr = cset.chars;
 

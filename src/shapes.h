@@ -64,6 +64,7 @@ typedef struct
     char *filename;
     gl_char_t *chars;
     uint8_t num;                /* Number of chars loaded */
+    int rsize;                  /* Size used to render the text. */
 } gl_charset_t;
 
 typedef struct
