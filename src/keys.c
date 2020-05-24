@@ -46,6 +46,90 @@ void keys_init(keyboard_t *k)
     k->ev.press_on = keys_midi_handle_on;
     k->ev.press_off = keys_midi_handle_off;
     k->ev.pedal = NULL;
+
+    k->rnote = render_notes_init(40);
+}
+
+static v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
+{
+    gl_char_t c;
+    bool is_black = false;
+
+    switch(note)
+    {
+    case NOTE_C: c = charset_get_char(&r.cset, 'C'); goto render;
+    case NOTE_D: c = charset_get_char(&r.cset, 'D'); goto render;
+    case NOTE_E: c = charset_get_char(&r.cset, 'E'); goto render;
+    case NOTE_F: c = charset_get_char(&r.cset, 'F'); goto render;
+    case NOTE_G: c = charset_get_char(&r.cset, 'G'); goto render;
+    case NOTE_A: c = charset_get_char(&r.cset, 'A'); goto render;
+    case NOTE_B: c = charset_get_char(&r.cset, 'B'); goto render;
+    }
+
+    is_black = true;
+
+    if(scale == SCALE_FLAT)
+    {
+        switch(note)
+        {
+        case NOTE_D_FLAT: c = charset_get_char(&r.cset, 'D'); goto render;
+        case NOTE_E_FLAT: c = charset_get_char(&r.cset, 'E'); goto render;
+        case NOTE_G_FLAT: c = charset_get_char(&r.cset, 'G'); goto render;
+        case NOTE_A_FLAT: c = charset_get_char(&r.cset, 'A'); goto render;
+        case NOTE_B_FLAT: c = charset_get_char(&r.cset, 'B'); goto render;
+        }
+    }
+
+    switch(note)
+    {
+    case NOTE_C_SHARP: c = charset_get_char(&r.cset, 'C'); goto render;
+    case NOTE_D_SHARP: c = charset_get_char(&r.cset, 'D'); goto render;
+    case NOTE_F_SHARP: c = charset_get_char(&r.cset, 'F'); goto render;
+    case NOTE_G_SHARP: c = charset_get_char(&r.cset, 'G'); goto render;
+    case NOTE_A_SHARP: c = charset_get_char(&r.cset, 'A'); goto render;
+    }
+
+render:
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(pos.x, pos.y, c.size.x, c.size.y, col);
+    pos.x += c.advance;
+
+    if(!is_black)
+        return pos;
+
+    if(scale == SCALE_FLAT) {
+        glBindTexture(GL_TEXTURE_2D, r.f_tex);
+        square_draw(pos.x-r.f_off.x, pos.y+r.f_off.y, r.fs_size, r.fs_size, col);
+        pos.x += r.fs_size-r.f_off.x;
+        return pos;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, r.s_tex);
+    square_draw(pos.x-r.s_off.x, pos.y+r.s_off.y, r.fs_size, r.fs_size, col);
+    pos.x += r.fs_size-r.s_off.x;
+    return pos;
+}
+
+render_notes_t render_notes_init(int fontsize)
+{
+    render_notes_t n;
+
+    n.cset = gl_load_charset("res/OpenSans-Bold.ttf", fontsize, 'A', 'H');
+    n.s_tex = gl_load_image_rgba("res/sharp.png");
+    n.f_tex = gl_load_image_rgba("res/flat.png");
+
+    n.fs_size = 2*n.cset.rsize/3;
+    n.s_off.x = n.fs_size/8;
+    n.s_off.y = 5*n.fs_size/8;
+
+    n.f_off.x = 3*n.fs_size/8;
+    n.f_off.y = 5*n.fs_size/8;
+
+    printf("s_tex: %d f_tex: %d\n", n.s_tex, n.f_tex);
+    printf("s_off.x: %d s_off.y: %d\n", n.s_off.x, n.s_off.y);
+    printf("f_off.x: %d f_off.y: %d\n", n.f_off.x, n.f_off.y);
+
+    return n;
 }
 
 void keys_print_notes(keyboard_t *k)
@@ -82,7 +166,6 @@ void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size)
         }
     }
 }
-
 
 static uint8_t keys_get_note(uint8_t midi_val)
 {
@@ -220,15 +303,6 @@ int keys_sharp_or_flat(int root, uint16_t notes)
     int idx, third;
     bool is_major;
 
-    //Print Notes
-    for(idx=0; idx<12; idx++)
-    {
-        if(1<<idx & notes)
-            printf("%hhu ", idx);
-    }
-
-    printf("\n");
-
     third = keys_get_third(root, notes);
     is_major = false;
 
@@ -312,23 +386,11 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
     root = keys_root_note(notes_bm);
 
     if(count >= 2)
-    {
         is_flat = keys_sharp_or_flat(root, notes_bm);
 
-        if(is_flat == SCALE_FLAT)
-            printf("FLAT\n");
-        else
-            printf("SHARP\n");
-    }
-
-    if(root != -1)
-    {
-        c = keys_get_note_char(root, cset);
-        glBindTexture(GL_TEXTURE_2D, c.tid);
-
+    if(root != -1) {
         color.r = 255;
-        square_draw(pos.x, pos.y, c.size.x, c.size.y, color);
-        pos.x += c.advance;
+        pos = keys_render_note(k->rnote, root, is_flat, pos, color);
         color.r = 0;
     }
 
@@ -336,11 +398,7 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
     {
         newline = true;
         printf("%hhu ", notes[i]);
-
-        c = keys_get_note_char(notes[i], cset);
-        glBindTexture(GL_TEXTURE_2D, c.tid);
-        square_draw(pos.x, pos.y, c.size.x, c.size.y, color);
-        pos.x += c.advance;
+        pos = keys_render_note(k->rnote, notes[i], is_flat, pos, color);
     }
 
     if(newline)

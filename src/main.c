@@ -93,8 +93,8 @@ int main(void)
     gl_charset_t cset = gl_load_charset("res/OpenSans-Bold.ttf", 40, 30, 128);
     gl_char_t c = charset_get_char(&cset, 'A');
 
-    uint32_t sharp = gl_load_image_rgba("res/sharp.png");
-    uint32_t flat = gl_load_image_rgba("res/flat.png");
+    //uint32_t sharp = gl_load_image_rgba("res/sharp.png");
+    //uint32_t flat = gl_load_image_rgba("res/flat.png");
 
     while(s.close == false)
     {
@@ -118,7 +118,7 @@ int main(void)
 
         keys_draw_notes(&k, V2(400,0), &cset);
 
-        render_flats_sharps_test(&cset, flat, sharp);
+        //render_flats_sharps_test(&cset, flat, sharp);
 
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         model_draw(w1->m, 0, 0, 800, 600, false);

@@ -7,11 +7,23 @@
 
 typedef struct
 {
-  uint8_t keys[16]; //bitmask representing whether key is pressed
-  midi_events_t ev;
-  tone_t notes[12]; //Current notes being played
-} keyboard_t;
+    gl_charset_t cset;          /* Letters used for rendering notes */
+    uint32_t s_tex;             /* Sharp note texure  */
+    v2 s_off;                   /* Sharp texture pos offset */
+    uint32_t f_tex;             /* Flat note texure  */
+    v2 f_off;                   /* Flat texture pos offset  */
+    int fs_size;                /* Flat/Sharp texture size */
 
+} render_notes_t;
+
+typedef struct
+{
+    uint8_t keys[16]; //bitmask representing whether key is pressed
+    midi_events_t ev;
+    tone_t notes[12]; //Current notes being played
+
+    render_notes_t rnote;
+} keyboard_t;
 
 enum {
     NOTE_C=0,
@@ -35,10 +47,10 @@ enum {
     NOTE_C_FLAT=11
 };
 
-enum {
+typedef enum {
     SCALE_SHARP=0,
     SCALE_FLAT=1,
-};
+} keys_scale_t ;
 
 enum {
     CHORD_MIN=0,
@@ -51,5 +63,7 @@ void keys_print_notes(keyboard_t *k);
 void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size);
 
 void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset);
+
+render_notes_t render_notes_init(int fontsize);
 
 #endif  /* KEYS_H_ */
