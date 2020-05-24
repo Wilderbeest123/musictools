@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "jtime.h"
 #include "frite.h"
 #include "sound.h"
@@ -19,38 +20,45 @@
 
 int main(void)
 {
+    bool frite_midi = false;
+
     //Screen/UI
     screen_t s;
     input_t in;
     shapes_t sh;
     ui_system_t uisys;
 
-    //Screen/UI init
-    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
-    input_init(&in, &s, false);
-    shapes_init(&sh);
-    uisys_init(&uisys, &in);
-
     //Sound
     frite_t hw;
     keyboard_t k;
 
+    //Screen/UI init
+    screen_init(&s, SCREEN_WIDTH, SCREEN_HEIGHT);
+    input_init(&in, &s, !frite_midi);
+
+    if(!frite_midi)
+        in.midi_ev = &k.ev;
+
+    shapes_init(&sh);
+    uisys_init(&uisys, &in);
+
     //Sound init
     keys_init(&k);
-    frite_open(&hw, &k.ev, true);
+    frite_open(&hw, &k.ev, frite_midi);
 
     waveform_t *w1 = waveform_init(10, 1000);
     int16_t buf[2205] = {0};
 
     textbox_add(V2(10,10), V2(200,30), "");
-
     gl_charset_t cset = gl_load_charset("res/OpenSans-Bold.ttf", 60, 30, 128);
 
     while(s.close == false)
     {
         input_update(&in);
         uisys_update(&uisys);
-        frite_read(&hw);
+
+        if(frite_midi)
+            frite_read(&hw);
 
         //Only write if space availabe in audio buffer.
         if(snd_pcm_avail(hw.audio_out) > hw.pback_out.period_size)
