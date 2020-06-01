@@ -1,13 +1,21 @@
 #include "input.h"
 #include "box.h"
+#include "frite.h"
 
-void input_init(input_t *i, screen_t *s, bool midi_en)
+#if 0
+#define dbg(s, ...) printf(s, __VA_ARGS__);
+#else
+#define dbg(s, ...)
+#endif
+
+void input_init(input_t *i, screen_t *s, frite_t *frite, bool midi_en)
 {
     i->s = s;
 
     i->m.pos.x = 0;
     i->m.pos.y = 0;
     i->m.ppos = i->m.pos;
+    i->frite = frite;
 
     if(midi_en)
         i->midi_en = true;
@@ -57,21 +65,24 @@ static inline void input_update_keyboard(input_t *in, SDL_Event ev)
 
     if(ev.type == SDL_KEYDOWN) {
         in->ev |= INEVENT_KDOWN;
-        printf("DOWN: %hhx\n", ev.key.keysym.sym);
+        dbg("DOWN: %hhx\n", ev.key.keysym.sym);
         in->key = ev.key.keysym.sym;
 
-        if(ev.key.repeat == false && in->midi_en)
+        if(ev.key.repeat == false && in->midi_en) {
             in->midi_ev->press_on(in->midi_ev, ev.key.keysym.sym, 0x00);
+            in->ev |= INEVENT_MIDI_DOWN;
+        }
     }
 
     if(ev.type == SDL_KEYUP) {
         in->ev |= INEVENT_KUP;
-        printf("UP: %c\n", ev.key.keysym.sym);
+        dbg("UP: %c\n", ev.key.keysym.sym);
 
-        if(ev.key.repeat == false && in->midi_en)
+        if(ev.key.repeat == false && in->midi_en) {
             in->midi_ev->press_off(in->midi_ev, ev.key.keysym.sym, 0x00);
+            in->ev |= INEVENT_MIDI_UP;
+        }
     }
-
 }
 
 void input_update(input_t *in)
@@ -95,6 +106,9 @@ void input_update(input_t *in)
             }
         }
     }
+
+    if(!in->midi_en)
+        in->ev |= frite_read(in->frite);
 }
 
 bool input_check_sel(v2 mpos, v2 pos, v2 size)

@@ -1,5 +1,7 @@
 #include "keys.h"
 
+static keyboard_t *gkeys;
+
 static void keys_midi_handle_on(void *this, uint8_t note, uint8_t velocity)
 {
     keyboard_t *k = CONTAINER_OF(this, keyboard_t, ev);
@@ -46,8 +48,8 @@ void keys_init(keyboard_t *k)
     k->ev.press_on = keys_midi_handle_on;
     k->ev.press_off = keys_midi_handle_off;
     k->ev.pedal = NULL;
-
     k->rnote = render_notes_init(40);
+    gkeys = k;
 }
 
 static v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
@@ -109,6 +111,25 @@ render:
     pos.x += r.fs_size-r.s_off.x;
     return pos;
 }
+
+
+void keys_render_notes(v2 pos, uint8_t *buf, int bsize, keys_scale_t scale, render_notes_t *r)
+{
+    int i;
+    render_notes_t rnote;
+    gl_color_t color = COLOR_INIT(0,0,0,255);
+
+    if(!r)
+        rnote = gkeys->rnote;
+    else
+        rnote = *r;
+
+    for(i=0; i<bsize; i++)
+    {
+        pos = keys_render_note(rnote, buf[i], scale, pos, color);
+    }
+}
+
 
 render_notes_t render_notes_init(int fontsize)
 {
@@ -172,7 +193,7 @@ static uint8_t keys_get_note(uint8_t midi_val)
     return midi_val%12;
 }
 
-static uint16_t keys_get_notes(uint8_t* data, int num)
+uint16_t keys_get_note_mask(uint8_t* data, int num)
 {
     uint16_t notes;
     int i;
@@ -232,7 +253,7 @@ static int keys_num_thirds(int root, uint16_t notes)
     return num_min;
 }
 
-static int keys_root_note(uint16_t notes)
+int keys_get_root_note(uint16_t notes)
 {
     int idx, val, c_root, r_val = 0;
     c_root = -1;
@@ -358,6 +379,28 @@ int keys_sharp_or_flat(int root, uint16_t notes)
     printf("ERR: should never reach here\n");
 }
 
+int keys_get_notes(uint8_t *buf, int bufsize)
+{
+    keyboard_t *this = gkeys;
+    int i, j, count;
+
+    memset(buf, 0, bufsize);
+
+    for(i=0;i<16;i++)
+    {
+        for(j=0;j<=8;j++)
+        {
+            if(count >= bufsize)
+                break;
+
+            if(this->keys[i] & (1 << j))
+                buf[count++] = keys_get_note((i*8+j));
+        }
+    }
+
+    return count;
+}
+
 void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
 {
     int i,j, count, root, is_flat;
@@ -367,23 +410,9 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
     gl_char_t c;
     gl_color_t color = COLOR_INIT(0, 0, 0, 255);
 
-    //determine what notes are being pressed.
-    count = 0;
-
-    for(i=0;i<16;i++)
-    {
-        for(j=0;j<=8;j++)
-        {
-            if(count >= 20)
-                break;
-
-            if(k->keys[i] & (1 << j))
-                notes[count++] = keys_get_note((i*8+j));
-        }
-    }
-
-    notes_bm = keys_get_notes(notes, count);
-    root = keys_root_note(notes_bm);
+    count = keys_get_notes(notes, 20);
+    notes_bm = keys_get_note_mask(notes, count);
+    root = keys_get_root_note(notes_bm);
 
     if(count >= 2)
         is_flat = keys_sharp_or_flat(root, notes_bm);
@@ -403,4 +432,47 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
 
     if(newline)
       printf("\n");
+}
+
+/** NOTE(jack): Basically some code which will be handy in the future
+ *  when having to fine tune the note textures. */
+void render_flats_sharps_test(gl_charset_t *cset, uint32_t flat, uint32_t sharp)
+{
+    char notes[8] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G' };
+    int xpos = 0;
+    int ypos = 300;
+    gl_char_t c;
+    int i, fs_size, sharp_x, flat_x, y_offset;
+    gl_color_t col = COLOR_INIT(0,0,0,255);
+
+    fs_size = 2*cset->rsize/3;
+    sharp_x = fs_size/8;
+    flat_x = 3*fs_size/8;
+    y_offset = 5*fs_size/8;
+
+    for(i=0; i<7; i++)
+    {
+        c = charset_get_char(cset, notes[i]);
+
+        glBindTexture(GL_TEXTURE_2D, c.tid);
+        square_draw(xpos, ypos, c.size.x, c.size.y, col);
+        xpos += c.advance;
+
+        glBindTexture(GL_TEXTURE_2D, sharp);
+        square_draw(xpos-sharp_x, ypos+y_offset, fs_size, fs_size, col);
+        xpos += fs_size-sharp_x;
+
+        glBindTexture(GL_TEXTURE_2D, c.tid);
+        square_draw(xpos, ypos, c.size.x, c.size.y, col);
+        xpos += c.advance;
+
+        glBindTexture(GL_TEXTURE_2D, flat);
+        square_draw(xpos-flat_x, ypos+y_offset, fs_size, fs_size, col);
+        xpos += fs_size-flat_x;
+
+        if(xpos > SCREEN_WIDTH) {
+            xpos = 0;
+            ypos += cset->rsize;
+        }
+    }
 }

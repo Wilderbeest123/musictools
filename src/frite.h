@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+
 #include "asoundlib.h"
 
 #define CONTAINER_OF(ptr, type, member) ({                        \
@@ -13,9 +14,9 @@
 
 typedef struct
 {
-    void (*press_on)(void*, uint8_t, uint8_t);
-    void (*press_off)(void*, uint8_t, uint8_t);
-    void (*pedal)(void*, uint8_t, uint8_t);
+  void (*press_on)(void*, uint8_t, uint8_t);
+  void (*press_off)(void*, uint8_t, uint8_t);
+  void (*pedal)(void*, uint8_t, uint8_t);
 } midi_events_t;
 
 typedef struct
@@ -43,11 +44,13 @@ typedef struct
 
 } frite_t;
 
+#include "input.h"
+
 void print_pback_settings();
 pback_settings_t pback_settings();
 int pback_maxval();
 
 void frite_open(frite_t *hw, midi_events_t *m, bool midi_en);
-void frite_read(frite_t *hw);
+input_flags_t frite_read(frite_t *hw);
 
 #endif  /* FRITE_H_ */

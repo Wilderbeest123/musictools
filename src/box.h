@@ -5,6 +5,7 @@
 #include "shapes.h"
 #include "input.h"
 #include "ui_node.h"
+#include "ui.h"
 
 typedef enum
 {
@@ -15,6 +16,10 @@ typedef enum
     BOX_COL_R=0x08,
 } box_col_t;
 
+enum {
+    BOX_STATE_MOVE=0x1,
+};
+
 typedef struct
 {
   int t;                      /* Top boundary */
@@ -23,18 +28,7 @@ typedef struct
   int r;                      /* Right boundary */
 } bound_t;
 
-typedef struct
-{
-    v2 pos;
-    v2 size;
-    unsigned int tid;           /* ID of the texture to render */
-    gl_color_t col;
-    ui_node_t n;
-} box_t;
-
 bound_t box_bound_get(v2 pos, v2 size);
-
-ui_node_t* box_init(v2 pos, v2 size, unsigned int tid, gl_color_t c);
-void box_draw(box_t b);
+ui_t* box_init(v2 pos, v2 size, gl_color_t c);
 
 #endif  /* BOX_H_ */

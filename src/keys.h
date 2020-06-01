@@ -25,7 +25,7 @@ typedef struct
     render_notes_t rnote;
 } keyboard_t;
 
-enum {
+typedef enum {
     NOTE_C=0,
     NOTE_C_SHARP=1,
     NOTE_D_FLAT=1,
@@ -45,24 +45,26 @@ enum {
     NOTE_B_FLAT=10,
     NOTE_B=11,
     NOTE_C_FLAT=11
-};
+} keys_note_t;
 
 typedef enum {
     SCALE_SHARP=0,
     SCALE_FLAT=1,
-} keys_scale_t ;
+} keys_scale_t;
 
 enum {
     CHORD_MIN=0,
     CHORD_MAJ=1,
 };
 
-
 void keys_init(keyboard_t *k);
 void keys_print_notes(keyboard_t *k);
 void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size);
 
 void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset);
+int keys_get_notes(uint8_t *buf, int bufsize);
+int keys_get_root_note(uint16_t notes);
+uint16_t keys_get_note_mask(uint8_t* data, int num);
 
 render_notes_t render_notes_init(int fontsize);
 

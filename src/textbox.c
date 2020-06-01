@@ -117,6 +117,9 @@ ui_node_t* textbox_init(v2 pos, v2 size, gl_charset_t cset, char *str)
     this->tid = gl_load_image("res/white.png");
     this->cset = cset;
     this->border = 1;
+    this->sel = false;
+    this->l_show = false;
+
     timer_init(&this->timer, 1000);
 
     memset(this->text, 0, 64);

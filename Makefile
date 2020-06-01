@@ -11,7 +11,8 @@ SRC_FILES = main.c \
 						ui.c \
 						textbox.c \
 						toolbar.c \
-						wform.c
+						wform.c \
+						chords.c
 
 
 INCLUDE_DIRS = -I /usr/include/alsa \

@@ -1,6 +1,8 @@
 #ifndef UI_NODE_H_
 #define UI_NODE_H_
 
+#include "input.h"
+
 typedef struct ui_node_t
 {
   struct ui_ops_t *ops;

@@ -31,7 +31,7 @@ ui_node_t* uisys_box_append(ui_system_t *uisys, v2 pos, v2 size)
     gl_color_t c = COLOR_INIT(255,255,127,255);
     ui_node_t *nptr;
 
-    nptr = box_init(pos, size, 0, c);
+    nptr = box_init(pos, size, c);
     ui_node_insert(&uisys->h, nptr);
     return nptr;
 }
@@ -44,36 +44,44 @@ ui_node_t* uisys_append(ui_node_t *n)
 
 void ui_draw(ui_node_t *node, v2 pos)
 {
-  ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
-  ui_node_t *nptr;
+    ui_t *this = CONTAINER_OF(node, ui_t, n);
+    ui_node_t *nptr;
 
-  glBindTexture(GL_TEXTURE_2D, this->b.tid);
-  box_draw(this->b);
+    glBindTexture(GL_TEXTURE_2D, this->tid);
+    square_draw(this->pos.x, this->pos.y, this->size.x, this->size.y, this->color);
 
-  for(nptr=this->h.first; nptr; nptr=nptr->next)
-    nptr->ops->draw(nptr, this->b.pos);
+    /*
+      printf("X: %d Y: %d SX: %d SY: %d\n",
+      this->pos.x, this->pos.y, this->size.x, this->size.y);
+    */
+
+    for(nptr=this->h.first; nptr; nptr=nptr->next)
+        nptr->ops->draw(nptr, this->pos);
 }
 
 ui_node_t* ui_select(ui_node_t *node, v2 mpos)
 {
-  ui_t *this = CONTAINER_OF(CONTAINER_OF(node, box_t, n), ui_t, b);
-  ui_node_t *nptr;
-  v2 rpos;
+    ui_t *this = CONTAINER_OF(node, ui_t, n);
+    ui_node_t *nptr;
+    v2 rpos;
 
-  if(input_check_sel(mpos, this->b.pos, this->b.size))
+    if(input_check_sel(mpos, this->pos, this->size))
     {
-      rpos = V2_DEL(mpos, this->b.pos);
+        rpos = V2_DEL(mpos, this->pos);
 
-      for(nptr=this->h.first; nptr; nptr=nptr->next)
+        for(nptr=this->h.first; nptr; nptr=nptr->next)
         {
-          if(nptr->ops->select(nptr, rpos))
-            return nptr;
+            if(!nptr->ops->select)
+                continue;
+
+            if(nptr->ops->select(nptr, rpos))
+                return nptr;
         }
 
-      return node;
+        return node;
     }
 
-  return NULL;
+    return NULL;
 }
 
 static void uisys_handle_ldown(ui_system_t *uisys, v2 pos)
@@ -100,7 +108,7 @@ static void uisys_handle_ldown(ui_system_t *uisys, v2 pos)
     if(append) {
         size.x = 160;
         size.y = 120;
-        //uisys->select = uisys_append(uisys, pos, size);
+        //uisys->select = uisys_box_append(uisys, pos, size);
     }
 }
 
@@ -125,4 +133,13 @@ void uisys_update(ui_system_t *uisys)
 
     for(nptr=uisys->h.first; nptr; nptr=nptr->next)
         nptr->ops->draw(nptr, pos);
+}
+
+void ui_free(ui_node_t *node)
+{
+    ui_t *this = CONTAINER_OF(node, ui_t, n);
+    ui_node_t *nptr;
+
+    for(nptr=this->h.first; nptr; nptr=nptr->next)
+        nptr->ops->free(nptr);
 }

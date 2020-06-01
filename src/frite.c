@@ -1,4 +1,5 @@
 #include "frite.h"
+#include "input.h"
 
 static pback_settings_t *playback_settings;
 
@@ -141,16 +142,18 @@ void frite_open(frite_t *hw, midi_events_t *m, bool midi_en)
     playback_settings = &hw->pback_out;
 }
 
-void frite_read(frite_t *hw)
+input_flags_t frite_read(frite_t *hw)
 {
     ssize_t size;
     uint8_t buf[256];
+    input_flags_t flags;
     int i;
 
     size = snd_rawmidi_read(hw->midi_in,(void*)buf,256);
+    flags = 0;
 
     if(size < 1)
-        return;
+        return 0;
 
     for(i=0;i<size;)
     {
@@ -163,17 +166,20 @@ void frite_read(frite_t *hw)
         case 0x90:
             printf("ON: %hhx %hhx\n", buf[i+1], buf[i+2]);
             hw->midi_ev->press_on(hw->midi_ev, buf[i+1],buf[i+2]);
+            flags |= INEVENT_MIDI_DOWN;
             i+=3;
             break;
 
         case 0x80:
             printf("OFF: %hhx %hhx\n", buf[i+1], buf[i+2]);
             hw->midi_ev->press_off(hw->midi_ev, buf[i+1],buf[i+2]);
+            flags |= INEVENT_MIDI_UP;
             i+=3;
             break;
 
         case 0xb0:
             printf("PEDAL: %hhx %hhx\n", buf[i+1], buf[i+2]);
+            flags |= INEVENT_MIDI_PEDAL;
             i+=3;
             break;
 
@@ -183,4 +189,6 @@ void frite_read(frite_t *hw)
             break;
         }
     }
+
+    return flags;
 }
