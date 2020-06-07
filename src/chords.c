@@ -49,7 +49,8 @@ static void chords_state_pending(chord_system_t *this)
 
 static void chords_state_timer(chord_system_t *this)
 {
-    if(this->in->ev & INEVENT_MIDI_DOWN) {
+    if(this->in->ev & INEVENT_MIDI_DOWN ||
+       this->in->ev & INEVENT_MIDI_UP) {
         timer_reset(&this->timer);
         return;
     }
@@ -84,16 +85,34 @@ static void chords_ui_init(void)
     chord_ui_t *c;
     ui_t *ui;
     ui_node_t *n;
-
-    ui = box_init(V2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2),
-                  V2(100,100), COLOR_INIT(255,255,255,255));
+    v2 size;
+    int i;
 
     c = (chord_ui_t*)malloc(sizeof(chord_ui_t));
     c->ncount = keys_get_notes(c->notes, 20);
     c->nmask = keys_get_note_mask(c->notes, c->ncount);
     c->rnote = keys_get_root_note(c->nmask);
+    c->is_flat = keys_sharp_or_flat(c->rnote, c->nmask);
     c->n.ops = &chord_ops;
     c->n.next = NULL;
+
+    printf("ncount: %d nmask: %d rnote: %d notes: ",
+           c->ncount, c->nmask, c->rnote);
+
+    for(i=0; i<c->ncount; i++)
+    {
+        printf("%hhu", c->notes[i]);
+
+    }
+
+    printf("\n");
+
+
+    size = keys_render_size(c->notes, c->ncount, c->is_flat, NULL);
+
+    ui = box_init(V2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2),
+                  size, COLOR_INIT(255,255,255,255));
+
 
     ui_node_insert(&ui->h, &c->n);
     uisys_append(&ui->n);

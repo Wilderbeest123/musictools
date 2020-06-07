@@ -66,6 +66,14 @@ int keys_get_notes(uint8_t *buf, int bufsize);
 int keys_get_root_note(uint16_t notes);
 uint16_t keys_get_note_mask(uint8_t* data, int num);
 
+v2 keys_render_size(uint8_t *buf, int bsize,
+                    keys_scale_t scale, render_notes_t *r);
+
+void keys_render_notes(v2 pos, uint8_t *buf, int bsize,
+                       keys_scale_t scale, render_notes_t *r);
+
+int keys_sharp_or_flat(int root, uint16_t notes);
+
 render_notes_t render_notes_init(int fontsize);
 
 #endif  /* KEYS_H_ */

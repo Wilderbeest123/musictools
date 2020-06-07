@@ -52,46 +52,70 @@ void keys_init(keyboard_t *k)
     gkeys = k;
 }
 
-static v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
+static gl_char_t keys_get_render_char(render_notes_t r, int note, keys_scale_t scale)
 {
-    gl_char_t c;
-    bool is_black = false;
-
     switch(note)
     {
-    case NOTE_C: c = charset_get_char(&r.cset, 'C'); goto render;
-    case NOTE_D: c = charset_get_char(&r.cset, 'D'); goto render;
-    case NOTE_E: c = charset_get_char(&r.cset, 'E'); goto render;
-    case NOTE_F: c = charset_get_char(&r.cset, 'F'); goto render;
-    case NOTE_G: c = charset_get_char(&r.cset, 'G'); goto render;
-    case NOTE_A: c = charset_get_char(&r.cset, 'A'); goto render;
-    case NOTE_B: c = charset_get_char(&r.cset, 'B'); goto render;
+    case NOTE_C: return charset_get_char(&r.cset, 'C');
+    case NOTE_D: return charset_get_char(&r.cset, 'D');
+    case NOTE_E: return charset_get_char(&r.cset, 'E');
+    case NOTE_F: return charset_get_char(&r.cset, 'F');
+    case NOTE_G: return charset_get_char(&r.cset, 'G');
+    case NOTE_A: return charset_get_char(&r.cset, 'A');
+    case NOTE_B: return charset_get_char(&r.cset, 'B');
     }
-
-    is_black = true;
 
     if(scale == SCALE_FLAT)
     {
         switch(note)
         {
-        case NOTE_D_FLAT: c = charset_get_char(&r.cset, 'D'); goto render;
-        case NOTE_E_FLAT: c = charset_get_char(&r.cset, 'E'); goto render;
-        case NOTE_G_FLAT: c = charset_get_char(&r.cset, 'G'); goto render;
-        case NOTE_A_FLAT: c = charset_get_char(&r.cset, 'A'); goto render;
-        case NOTE_B_FLAT: c = charset_get_char(&r.cset, 'B'); goto render;
+        case NOTE_D_FLAT: return charset_get_char(&r.cset, 'D');
+        case NOTE_E_FLAT: return charset_get_char(&r.cset, 'E');
+        case NOTE_G_FLAT: return charset_get_char(&r.cset, 'G');
+        case NOTE_A_FLAT: return charset_get_char(&r.cset, 'A');
+        case NOTE_B_FLAT: return charset_get_char(&r.cset, 'B');
         }
     }
 
     switch(note)
     {
-    case NOTE_C_SHARP: c = charset_get_char(&r.cset, 'C'); goto render;
-    case NOTE_D_SHARP: c = charset_get_char(&r.cset, 'D'); goto render;
-    case NOTE_F_SHARP: c = charset_get_char(&r.cset, 'F'); goto render;
-    case NOTE_G_SHARP: c = charset_get_char(&r.cset, 'G'); goto render;
-    case NOTE_A_SHARP: c = charset_get_char(&r.cset, 'A'); goto render;
+    case NOTE_C_SHARP: return charset_get_char(&r.cset, 'C');
+    case NOTE_D_SHARP: return charset_get_char(&r.cset, 'D');
+    case NOTE_F_SHARP: return charset_get_char(&r.cset, 'F');
+    case NOTE_G_SHARP: return charset_get_char(&r.cset, 'G');
+    case NOTE_A_SHARP: return charset_get_char(&r.cset, 'A');
     }
 
-render:
+    //NOTE(jack): Should never reach here!
+}
+
+static bool keys_is_black(int note)
+{
+    switch(note)
+    {
+    case NOTE_C:
+    case NOTE_D:
+    case NOTE_E:
+    case NOTE_F:
+    case NOTE_G:
+    case NOTE_A:
+    case NOTE_B:
+        return false;
+        break;
+
+    default:
+        return true;
+    }
+}
+
+static v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
+{
+    gl_char_t c;
+    bool is_black;
+
+    c = keys_get_render_char(r, note, scale);
+    is_black = keys_is_black(note);
+
     glBindTexture(GL_TEXTURE_2D, c.tid);
     square_draw(pos.x, pos.y, c.size.x, c.size.y, col);
     pos.x += c.advance;
@@ -113,7 +137,8 @@ render:
 }
 
 
-void keys_render_notes(v2 pos, uint8_t *buf, int bsize, keys_scale_t scale, render_notes_t *r)
+void keys_render_notes(v2 pos, uint8_t *buf, int bsize,
+                       keys_scale_t scale, render_notes_t *r)
 {
     int i;
     render_notes_t rnote;
@@ -130,6 +155,38 @@ void keys_render_notes(v2 pos, uint8_t *buf, int bsize, keys_scale_t scale, rend
     }
 }
 
+v2 keys_render_size(uint8_t *buf, int bsize,
+                    keys_scale_t scale, render_notes_t *r)
+{
+    int i;
+    bool is_black;
+    render_notes_t rnote;
+    gl_char_t c;
+    v2 size;
+
+    size = V2(0,0);
+
+    if(!r)
+        rnote = gkeys->rnote;
+    else
+        rnote = *r;
+
+    for(i=0; i<bsize; i++)
+    {
+        c = keys_get_render_char(rnote, buf[i], scale);
+        is_black = keys_is_black(buf[i]);
+
+        size.x += c.advance;
+
+        if(is_black)
+            size.x += rnote.fs_size;
+
+        if(c.size.y > size.y)
+            size.y = c.size.y;
+    }
+
+    return size;
+}
 
 render_notes_t render_notes_init(int fontsize)
 {
@@ -426,12 +483,12 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
     for(i=0; i<count; i++)
     {
         newline = true;
-        printf("%hhu ", notes[i]);
+        //printf("%hhu ", notes[i]);
         pos = keys_render_note(k->rnote, notes[i], is_flat, pos, color);
     }
 
-    if(newline)
-      printf("\n");
+    //if(newline)
+    //printf("\n");
 }
 
 /** NOTE(jack): Basically some code which will be handy in the future
