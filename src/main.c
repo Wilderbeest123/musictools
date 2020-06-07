@@ -53,7 +53,6 @@ int main(void)
 
     textbox_add(V2(10,10), V2(200,30), "");
     gl_charset_t cset = gl_load_charset("res/OpenSans-Bold.ttf", 40, 30, 128);
-    gl_char_t c = charset_get_char(&cset, 'A');
 
     while(s.close == false)
     {
@@ -75,9 +74,10 @@ int main(void)
         }
 
         keys_draw_notes(&k, V2(400,0), &cset);
-
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         model_draw(w1->m, 0, 0, 800, 600, false);
+
+
         screen_swap_buffer(&s);
     }
 }

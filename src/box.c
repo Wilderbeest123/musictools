@@ -37,18 +37,6 @@ ui_t* box_init(v2 pos, v2 size, gl_color_t c)
     this->n.next = NULL;
     this->h.first = NULL;
     return this;
-
-    /*
-      ui_node_t *nptr;
-      nptr = button_init(V2(0,0),V2(32,32), gl_load_image("res/yoda.png"), ui_button_callback, this);
-      ui_node_insert(&this->h, nptr);
-
-      gl_charset_t cset = gl_load_charset("res/OpenSans-Regular.ttf", 24, 30, 128);
-      char *str = "hello";
-
-      nptr = textbox_init(V2(2,38), V2(100,28), cset, str);
-      ui_node_insert(&this->h, nptr);
-    */
 }
 
 static uint8_t box_check_collision(v2 ppos, ui_t *box1, ui_t *box2)
@@ -103,9 +91,16 @@ static void box_ui_update(ui_node_t *node, input_t *in, void *data)
     if((in->ev & INEVENT_MMOTION) != INEVENT_MMOTION)
         return;
 
+    if(in->m.lPress == false)
+        return;
+
     ppos = this->pos;
     this->pos.x += in->m.dpos.x;
     this->pos.y += in->m.dpos.y;
+
+    /* TODO(jack): Below code assumes all nodes in list are ui_t. Need
+     * to fix at some stage. */
+    return;
 
     //Check for collisions
     for(nptr=bsys->h.first; nptr; nptr=nptr->next)

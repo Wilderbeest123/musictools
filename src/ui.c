@@ -74,10 +74,13 @@ ui_node_t* ui_select(ui_node_t *node, v2 mpos)
             if(!nptr->ops->select)
                 continue;
 
-            if(nptr->ops->select(nptr, rpos))
+            if(nptr->ops->select(nptr, rpos)) {
+                //printf("select: %p\n", nptr);
                 return nptr;
+            }
         }
 
+        //printf("select: %p\n", node);
         return node;
     }
 
