@@ -63,7 +63,7 @@ void keys_populate_buffer(keyboard_t *k, uint16_t *buffer, uint32_t size);
 
 void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset);
 int keys_get_notes(uint8_t *buf, int bufsize);
-int keys_get_root_note(uint16_t notes);
+int keys_get_root_by_thirds(uint16_t notes);
 uint16_t keys_get_note_mask(uint8_t* data, int num);
 
 v2 keys_render_size(uint8_t *buf, int bsize,

@@ -310,7 +310,34 @@ static int keys_num_thirds(int root, uint16_t notes)
     return num_min;
 }
 
-int keys_get_root_note(uint16_t notes)
+static bool keys_has_fourth(int root, uint16_t notes)
+{
+    int fourth;
+    fourth = (root+5)%12;
+
+    if(1<<fourth & notes)
+        return true;
+
+    return false;
+}
+
+static int keys_num_fifths(int root, uint16_t notes)
+{
+    int fifth, num_fifth;
+    uint16_t new_bm;
+
+    fifth = (root+7)%12;
+    num_fifth = 0;
+    new_bm = notes & ~(1<<root)%12;
+
+    if(1<<fifth & notes) {
+        num_fifth += keys_num_fifths(fifth, new_bm);
+    }
+
+    return num_fifth;
+}
+
+int keys_get_root_by_thirds(uint16_t notes)
 {
     int idx, val, c_root, r_val = 0;
     c_root = -1;
@@ -328,6 +355,38 @@ int keys_get_root_note(uint16_t notes)
     }
 
     return c_root;
+}
+
+int keys_get_root(uint16_t nmask, uint8_t *notes, int num_notes)
+{
+    int root, idx, fifth_count;
+    uint16_t fifth_mask;
+
+    root = keys_get_root_by_thirds(nmask);
+    fifth_mask = 0;
+    fifth_count = 0;
+
+    if(root != -1)
+        return root;
+
+    /* NOTE(jack): If no thirds are played, the
+       only chord types remaining are power or
+       sustain chords. Issue with sustain chords is that
+       there is potentially two root notes. eg. CSUS2
+       and GSUS4 Therefore the order of notes also
+       matter to determine the root note.*/
+
+    for(idx=0; idx<12; idx++)
+    {
+        if(1<<idx & nmask) {
+          //if(keys_has_fifth(idx, nmask)) {
+          //      fifth_mask |= idx;
+          //      fifth_count++;
+          //  }
+        }
+    }
+
+    return root;
 }
 
 static gl_char_t keys_get_note_char(int note, gl_charset_t *cset)
@@ -469,7 +528,7 @@ void keys_draw_notes(keyboard_t *k, v2 pos, gl_charset_t *cset)
 
     count = keys_get_notes(notes, 20);
     notes_bm = keys_get_note_mask(notes, count);
-    root = keys_get_root_note(notes_bm);
+    root = keys_get_root_by_thirds(notes_bm);
 
     if(count >= 2)
         is_flat = keys_sharp_or_flat(root, notes_bm);

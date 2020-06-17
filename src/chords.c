@@ -64,7 +64,7 @@ static void chords_state_timer(chord_system_t *this)
 static ui_node_t* chord_ui_select(ui_node_t *node, v2 mpos);
 static void chord_ui_draw(ui_node_t *node, v2 pos);
 
-static ui_ops_t chord_ops = { .select=ui_select,
+static ui_ops_t chord_ops = { .select=chord_ui_select,
                               .draw=chord_ui_draw,
                               .free=NULL };
 
@@ -91,7 +91,7 @@ static void chords_ui_init(void)
     c = (chord_ui_t*)malloc(sizeof(chord_ui_t));
     c->ncount = keys_get_notes(c->notes, 20);
     c->nmask = keys_get_note_mask(c->notes, c->ncount);
-    c->rnote = keys_get_root_note(c->nmask);
+    c->rnote = keys_get_root_by_thirds(c->nmask);
     c->is_flat = keys_sharp_or_flat(c->rnote, c->nmask);
     c->n.ops = &chord_ops;
     c->n.next = NULL;
@@ -102,7 +102,6 @@ static void chords_ui_init(void)
     for(i=0; i<c->ncount; i++)
     {
         printf("%hhu", c->notes[i]);
-
     }
 
     printf("\n");
@@ -114,6 +113,7 @@ static void chords_ui_init(void)
                   size, COLOR_INIT(255,255,255,255));
 
 
+    //Insert the chord_ui_t as a child.
     ui_node_insert(&ui->h, &c->n);
     uisys_append(&ui->n);
 }

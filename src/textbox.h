@@ -20,7 +20,7 @@ typedef struct
     gl_charset_t cset;
 
     jtime_t timer;
-    bool l_show;
+    bool l_show;                /* Display the textbox line */
 
 } textbox_t;
 
