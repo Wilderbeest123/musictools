@@ -63,7 +63,8 @@ static void frite_print_hw_options(frite_t *hw)
 
 static void frite_midi_open(frite_t *hw, midi_events_t *m)
 {
-    char *midi_dev = "hw:2,0,0"; //This appears to not change
+    //char *midi_dev = "hw:2,0,0"; //This appears to not change
+    char *midi_dev = "hw:1"; //This is the current string for Ubuntu 20 LTS
     int result = 0;
 
     //Midi In

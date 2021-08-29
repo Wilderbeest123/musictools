@@ -14,9 +14,8 @@ SRC_FILES = main.c \
 						wform.c \
 						chords.c
 
-
 INCLUDE_DIRS = -I /usr/include/alsa \
-							 -I/usr/local/include/SDL2
+							 -I/usr/include/SDL2 \
 
 LIBS = -lasound -lm -lGLEW -lGL \
 			 -lSDL2 -lSDL2_ttf -lSDL2_image

@@ -21,7 +21,7 @@
 
 int main(void)
 {
-    bool frite_midi = false;
+    bool frite_midi = true;
 
     //Screen/UI
     screen_t s;
@@ -76,7 +76,6 @@ int main(void)
         keys_draw_notes(&k, V2(400,0), &cset);
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         model_draw(w1->m, 0, 0, 800, 600, false);
-
 
         screen_swap_buffer(&s);
     }
