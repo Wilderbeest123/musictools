@@ -38,6 +38,7 @@ typedef struct
 
 #define MODEL_INIT() { .vao=0, .vpos=0, .vcolor=0, .ebo=0, .e_len=0, .v_len=0 }
 
+gl_model_t model_init_square(void);
 void model_init_vpos(GLuint *vbo, GLfloat *vpos, int len);
 void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len);
 void model_draw(gl_model_t s, int x, int y, int width, int height, bool use_tcoord);

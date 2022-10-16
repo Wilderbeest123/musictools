@@ -51,7 +51,7 @@ void model_init_tcoord(GLuint *vbo, GLfloat *tcoord, int len)
     glVertexAttribPointer(VERT_ATTR_TCOORD, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-static gl_model_t model_init_square(void)
+gl_model_t model_init_square(void)
 {
     gl_model_t s = MODEL_INIT();
 
