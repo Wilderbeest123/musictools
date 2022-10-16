@@ -23,21 +23,41 @@
 typedef struct {
     gl_model_t s;
     uint32_t ftex; // Texture for the Fretboard
+    uint32_t utex; // Uniform Texture for Fret Holdings
 
 } fretboard_t;
 
 void fretboard_init(fretboard_t *this)
 {
     this->ftex = gl_load_image("res/fretboard.png");
+    this->utex = gl_load_image("res/white.png");
     this->s = model_init_square();
 }
 
+// This is a dummy function used to determine where
+// to render the appropriate locations for the fretboard
 void fretboard_draw(fretboard_t *this)
 {
-    glBindTexture(GL_TEXTURE_2D, this->ftex);
-    square_draw(100, 100, 180, 120, COLOR_INIT(255,255,255,255));
-}
+    int xval = 33; // Offset for each note
+    int yval = 20;
+    v2 fsize = { 180, 120 }; // Total size of render
+    v2 nsize = { 18, 18 }; // Size of each Fret Note
+    v2 soff = { 16, 2 }; // The start point offset when rendering
 
+    // Render the Base Fretboard
+    glBindTexture(GL_TEXTURE_2D, this->ftex);
+    square_draw(100, 100, fsize.x, fsize.y, COLOR_INIT(255,255,255,255));
+
+    // Render the Finger Holdings
+    glBindTexture(GL_TEXTURE_2D, this->utex);
+
+    for(int i=0; i<5; i++) {
+        for(int j=0; j<6; j++) {
+            circle_draw(100 + soff.x + (i*xval), 100 + soff.y + (j*yval),
+                        nsize.x, nsize.y, COLOR_INIT(255,0,255,100));
+        }
+    }
+}
 
 int main(void)
 {
