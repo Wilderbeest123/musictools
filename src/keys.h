@@ -44,7 +44,8 @@ typedef enum {
     NOTE_A_SHARP=10,
     NOTE_B_FLAT=10,
     NOTE_B=11,
-    NOTE_C_FLAT=11
+    NOTE_C_FLAT=11,
+    NOTE_OCTAVE=12
 } keys_note_t;
 
 typedef enum {
