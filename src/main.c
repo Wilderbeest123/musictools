@@ -115,6 +115,10 @@ void fretboard_print_cli(fretboard_t f) {
 //-------------------------
 void fretboard_test_C(void) {
     fretboard_t f;
+
+    // * ROOT note of Chord starts on the
+    //   first string we strike.
+    //
     f.str6 = -1;
     f.str5 = fretboard_find_note(NOTE_C, STR_A);
     f.str4 = fretboard_find_note(NOTE_E, STR_D);
@@ -131,6 +135,12 @@ void fretboard_test_C(void) {
 //-------------------------
 void fretboard_test_A(void) {
     fretboard_t f;
+
+    // * ROOT note of the chord begins with the
+    //   third string up
+    //
+    // * A 2nd inversion can be played starting
+    //   on the 4th string up
     f.str6 = -1;
     f.str5 = fretboard_find_note(NOTE_A, STR_A);
     f.str4 = fretboard_find_note(NOTE_E, STR_D);
@@ -147,6 +157,11 @@ void fretboard_test_A(void) {
 //-------------------------
 void fretboard_test_G(void) {
     fretboard_t f;
+
+    // * The ROOT Triad can be played on the 1st
+    //   string we strike
+    //
+    // * 1st Inversion can be played on the 2nd string
     f.str6 = fretboard_find_note(NOTE_G, STR_E);
     f.str5 = fretboard_find_note(NOTE_B, STR_A);
     f.str4 = fretboard_find_note(NOTE_D, STR_D);
@@ -163,6 +178,9 @@ void fretboard_test_G(void) {
 //-------------------------
 void fretboard_test_E(void) {
     fretboard_t f;
+
+    // * Root note E is the same as the fret position
+
     f.str6 = fretboard_find_note(NOTE_E, STR_E);
     f.str5 = fretboard_find_note(NOTE_B, STR_A);
     f.str4 = fretboard_find_note(NOTE_E, STR_D);
@@ -179,6 +197,10 @@ void fretboard_test_E(void) {
 //-------------------------
 void fretboard_test_D(void) {
     fretboard_t f;
+
+    // * 2nd Inversion can be played on the first
+    //   three strings of the guitar.
+
     f.str6 = -1;
     f.str5 = -1;
     f.str4 = fretboard_find_note(NOTE_D, STR_D);
@@ -194,6 +216,8 @@ typedef struct {
     uint32_t ftex; // Texture for the Fretboard
     uint32_t utex; // Uniform Texture for Fret Holdings
     v2 pos; // The base Render position
+    gl_charset_t nmbrs; // Character set used to represent fret position
+
 } fretboard_rend_t;
 
 void fretboard_init(fretboard_rend_t *this)
@@ -203,6 +227,7 @@ void fretboard_init(fretboard_rend_t *this)
     this->s = model_init_square();
     this->pos.x = 300;
     this->pos.y = 100;
+    this->nmbrs = gl_load_charset("res/OpenSans-Bold.ttf", 32, '0', '9');
 }
 
 // This is a dummy function used to determine where
@@ -224,10 +249,23 @@ void fretboard_draw(fretboard_rend_t *this)
 
     for(int i=0; i<5; i++) {
         for(int j=0; j<6; j++) {
-            circle_draw(this->pos.x + soff.x + (i*xval), this->pos.y + soff.y + (j*yval),
-                        nsize.x, nsize.y, COLOR_INIT(255,0,255,100));
+            circle_draw(this->pos.x + soff.x + (i*xval),
+                        this->pos.y + soff.y + (j*yval),
+                        nsize.x, nsize.y, COLOR_INIT(255,0,255,200));
         }
     }
+
+    // Render the Fret Position
+    gl_char_t c;
+
+    c = charset_get_char(&this->nmbrs, '1');
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(this->pos.x-25, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+
+    // In Case of a Second Number
+    c = charset_get_char(&this->nmbrs, '2');
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(this->pos.x-10, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
 }
 
 int main(void)
