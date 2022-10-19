@@ -261,6 +261,8 @@ void fretboard_render(fretboard_rend_t *this, fretboard_t f, uint8_t start_fret)
     v2 rpos;
     uint8_t *sptr;
     fretboard_rend_fingers_t frend;
+    gl_char_t c;
+
     frend = fretboard_get_render_positions(&f, start_fret);
 
     // Render the Base Fretboard
@@ -283,6 +285,11 @@ void fretboard_render(fretboard_rend_t *this, fretboard_t f, uint8_t start_fret)
         circle_draw(rpos.x, rpos.y, this->nsize.x, this->nsize.y, COLOR_INIT(255,0,255,200));
         sptr++;
     }
+
+    // Render the Fret Position
+    c = charset_get_char(&this->nmbrs, '0');
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(this->pos.x-10, this->pos.y + 100, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
 }
 
 //-------------------------
@@ -436,7 +443,7 @@ int main(void)
         uisys_update(&uisys);
 
         // --- ENTER RENDER LOGIC HERE ---
-        fretboard_test_D(&f);
+        fretboard_test_C(&f);
 
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         screen_swap_buffer(&s);
