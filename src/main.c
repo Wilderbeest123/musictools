@@ -110,11 +110,188 @@ void fretboard_print_cli(fretboard_t f) {
 }
 
 //-------------------------
+// fretboard_rend_fingers_t - This provides the necessary
+// offset information as to how to render the correct
+// shape to represent the data stored in fretboard_t
+// 0xFF == String Not Played
+// 0x00 == Fret Position
+// 0x01 == Render Fret+1 Position
+// 0x02 == Render Fret+2 Position
+// etc.
+//-------------------------
+typedef struct {
+    uint8_t str1; // High E String
+    uint8_t str2; // B String
+    uint8_t str3; // G String
+    uint8_t str4; // D String
+    uint8_t str5; // A String
+    uint8_t str6; // E String
+
+} fretboard_rend_fingers_t;
+
+//-------------------------
+// fretboard_rend_print_cli - Print contents
+// of a fretboard onto the command line
+//-------------------------
+void fretboard_rend_print_cli(fretboard_rend_fingers_t f) {
+    printf("-------------------\n");
+    printf("%u\n", f.str1);
+    printf("%u\n", f.str2);
+    printf("%u\n", f.str3);
+    printf("%u\n", f.str4);
+    printf("%u\n", f.str5);
+    printf("%u\n", f.str6);
+    printf("-------------------\n");
+}
+
+fretboard_rend_fingers_t fretboard_get_render_positions(fretboard_t *f, uint8_t start_fret) {
+    uint8_t llim, hlim; // Low & High Limits
+    fretboard_rend_fingers_t rend;
+
+    rend.str1 = f->str1 - start_fret;
+    rend.str2 = f->str2 - start_fret;
+    rend.str3 = f->str3 - start_fret;
+    rend.str4 = f->str4 - start_fret;
+    rend.str5 = f->str5 - start_fret;
+    rend.str6 = f->str6 - start_fret;
+
+    // Determine if each string is in appropriate bounds
+    // otherwise set to 0xFF
+    llim = start_fret;
+    hlim = start_fret + 6; // Six possible positions on the fret
+
+    if(rend.str1 < llim || rend.str1 > hlim)
+        rend.str1 = 0xFF;
+
+    if(rend.str2 < llim || rend.str2 > hlim)
+        rend.str2 = 0xFF;
+
+    if(rend.str3 < llim || rend.str3 > hlim)
+        rend.str3 = 0xFF;
+
+    if(rend.str4 < llim || rend.str4 > hlim)
+        rend.str4 = 0xFF;
+
+    if(rend.str5 < llim || rend.str5 > hlim)
+        rend.str5 = 0xFF;
+
+    if(rend.str6 < llim || rend.str6 > hlim)
+        rend.str6 = 0xFF;
+
+    return rend;
+}
+
+//-------------------------
+// fretboard_rend_t - This struct contains all
+// of the data responsible for rendering the
+// fretboard and the notes being played
+//-------------------------
+typedef struct {
+    gl_model_t s;
+    uint32_t ftex; // Texture for the Fretboard
+    uint32_t utex; // Uniform Texture for Fret Holdings
+    v2 pos; // The base Render position
+    gl_charset_t nmbrs; // Character set used to represent fret position
+
+    v2 rsize; // Size of the Fretboard
+    v2 nsize; // Size of each played Note
+    v2 nstoff; // Start point Render offset
+    v2 nval; // Seperation values between each Rendered Note
+
+} fretboard_rend_t;
+
+void fretboard_init(fretboard_rend_t *this)
+{
+    this->pos.x = 300;
+    this->pos.y = 100;
+
+    this->ftex = gl_load_image("res/fretboard.png");
+    this->utex = gl_load_image("res/white.png");
+    this->s = model_init_square();
+    this->nmbrs = gl_load_charset("res/OpenSans-Bold.ttf", 32, '0', '9');
+
+    this->rsize = V2(180, 120);
+    this->nsize = V2(18, 18);
+    this->nstoff = V2(16, 2);
+    this->nval = V2(33, 20);
+}
+
+// This is a test function used to determine where
+// to render the appropriate locations for the fretboard
+void fretboard_rend_test(fretboard_rend_t *this)
+{
+    gl_char_t c;
+
+    // Render the Base Fretboard
+    glBindTexture(GL_TEXTURE_2D, this->ftex);
+    square_draw(this->pos.x, this->pos.y, this->rsize.x, this->rsize.y, COLOR_INIT(255,255,255,255));
+
+    // Render the Finger Holdings
+    glBindTexture(GL_TEXTURE_2D, this->utex);
+
+    for(int i=0; i<5; i++) {
+        for(int j=0; j<6; j++) {
+            circle_draw(this->pos.x + this->nstoff.x + (i*this->nval.x),
+                        this->pos.y + this->nstoff.y + (j*this->nval.y),
+                        this->nsize.x, this->nsize.y, COLOR_INIT(255,0,255,200));
+        }
+    }
+
+    // Render the Fret Position
+    c = charset_get_char(&this->nmbrs, '1');
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(this->pos.x-25, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+
+    // In Case of a Second Number
+    c = charset_get_char(&this->nmbrs, '2');
+    glBindTexture(GL_TEXTURE_2D, c.tid);
+    square_draw(this->pos.x-10, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+
+    // Render the place you Bar the Chord
+    glBindTexture(GL_TEXTURE_2D, this->utex);
+    square_draw(this->pos.x+5, this->pos.y+10, 5, 100, COLOR_INIT(255,0,255,200));
+    return;
+}
+
+//-------------------------
+// fretboard_render - Render a Fretboard based upon
+// the contents stored within the fretboard_t
+//-------------------------
+void fretboard_render(fretboard_rend_t *this, fretboard_t f, uint8_t start_fret) {
+    v2 rpos;
+    uint8_t *sptr;
+    fretboard_rend_fingers_t frend;
+    frend = fretboard_get_render_positions(&f, start_fret);
+
+    // Render the Base Fretboard
+    glBindTexture(GL_TEXTURE_2D, this->ftex);
+    square_draw(this->pos.x, this->pos.y, this->rsize.x, this->rsize.y, COLOR_INIT(255,255,255,255));
+
+    // Render the Finger Holdings
+    glBindTexture(GL_TEXTURE_2D, this->utex);
+
+    sptr = &frend.str1;
+    for(int j=0; j<6; j++) {
+
+        if(*sptr == 0xFF || *sptr == 0x00) {
+            sptr++;
+            continue;
+        }
+
+        rpos.x = this->pos.x + this->nstoff.x + ((*sptr - 1) * this->nval.x);
+        rpos.y = this->pos.y + this->nstoff.y + (j*this->nval.y);
+        circle_draw(rpos.x, rpos.y, this->nsize.x, this->nsize.y, COLOR_INIT(255,0,255,200));
+        sptr++;
+    }
+}
+
+//-------------------------
 // fretboard_test_C - Test that system can determine
 // an Open C Chord
 //-------------------------
-void fretboard_test_C(void) {
+void fretboard_test_C(fretboard_rend_t *frend) {
     fretboard_t f;
+    fretboard_rend_fingers_t rend;
 
     // * ROOT note of Chord starts on the
     //   first string we strike.
@@ -125,16 +302,18 @@ void fretboard_test_C(void) {
     f.str3 = fretboard_find_note(NOTE_G, STR_G);
     f.str2 = fretboard_find_note(NOTE_C, STR_B);
     f.str1 = fretboard_find_note(NOTE_E, STR_E);
-    printf("Open C Chord\n");
-    fretboard_print_cli(f);
+    //printf("Open C Chord\n");
+    //fretboard_print_cli(f);
+    fretboard_render(frend, f, 0);
 }
 
 //-------------------------
 // fretboard_test_A - Test that system can determine
 // an Open A Chord
 //-------------------------
-void fretboard_test_A(void) {
+void fretboard_test_A(fretboard_rend_t *frend) {
     fretboard_t f;
+    fretboard_rend_fingers_t rend;
 
     // * ROOT note of the chord begins with the
     //   third string up
@@ -147,16 +326,18 @@ void fretboard_test_A(void) {
     f.str3 = fretboard_find_note(NOTE_A, STR_G);
     f.str2 = fretboard_find_note(NOTE_C_SHARP, STR_B);
     f.str1 = fretboard_find_note(NOTE_E, STR_E);
-    printf("Open A Chord\n");
-    fretboard_print_cli(f);
+    //printf("Open A Chord\n");
+    //fretboard_print_cli(f);
+    fretboard_render(frend, f, 0);
 }
 
 //-------------------------
 // fretboard_test_G - Test that system can determine
 // an Open C Chord
 //-------------------------
-void fretboard_test_G(void) {
+void fretboard_test_G(fretboard_rend_t *frend) {
     fretboard_t f;
+    fretboard_rend_fingers_t rend;
 
     // * The ROOT Triad can be played on the 1st
     //   string we strike
@@ -168,38 +349,45 @@ void fretboard_test_G(void) {
     f.str3 = fretboard_find_note(NOTE_G, STR_G);
     f.str2 = fretboard_find_note(NOTE_B, STR_B);
     f.str1 = fretboard_find_note(NOTE_G, STR_E);
-    printf("Open G Chord\n");
-    fretboard_print_cli(f);
+    //printf("Open G Chord\n");
+    //fretboard_print_cli(f);
+    fretboard_render(frend, f, 0);
 }
 
 //-------------------------
 // fretboard_test_E - Test that system can determine
 // an Open E Chord
 //-------------------------
-void fretboard_test_E(void) {
+void fretboard_test_E(fretboard_rend_t *frend) {
     fretboard_t f;
+    fretboard_rend_fingers_t rend;
 
     // * Root note E is the same as the fret position
-
     f.str6 = fretboard_find_note(NOTE_E, STR_E);
     f.str5 = fretboard_find_note(NOTE_B, STR_A);
     f.str4 = fretboard_find_note(NOTE_E, STR_D);
     f.str3 = fretboard_find_note(NOTE_G_SHARP, STR_G);
     f.str2 = fretboard_find_note(NOTE_B, STR_B);
     f.str1 = fretboard_find_note(NOTE_E, STR_E);
-    printf("Open E Chord\n");
-    fretboard_print_cli(f);
+    //printf("Open E Chord\n");
+    //fretboard_print_cli(f);
+    fretboard_render(frend, f, 0);
 }
 
 //-------------------------
 // fretboard_test_D - Test that system can determine
 // an Open D Chord
 //-------------------------
-void fretboard_test_D(void) {
+void fretboard_test_D(fretboard_rend_t *frend) {
     fretboard_t f;
+    fretboard_rend_fingers_t rend;
 
     // * 2nd Inversion can be played on the first
     //   three strings of the guitar.
+    //
+    // * The first note we play is the ROOT Note
+    //
+    // * Root note D is the same as the fret postition
 
     f.str6 = -1;
     f.str5 = -1;
@@ -207,65 +395,9 @@ void fretboard_test_D(void) {
     f.str3 = fretboard_find_note(NOTE_A, STR_G);
     f.str2 = fretboard_find_note(NOTE_D, STR_B);
     f.str1 = fretboard_find_note(NOTE_F_SHARP, STR_E);
-    printf("Open D Chord\n");
-    fretboard_print_cli(f);
-}
-
-typedef struct {
-    gl_model_t s;
-    uint32_t ftex; // Texture for the Fretboard
-    uint32_t utex; // Uniform Texture for Fret Holdings
-    v2 pos; // The base Render position
-    gl_charset_t nmbrs; // Character set used to represent fret position
-
-} fretboard_rend_t;
-
-void fretboard_init(fretboard_rend_t *this)
-{
-    this->ftex = gl_load_image("res/fretboard.png");
-    this->utex = gl_load_image("res/white.png");
-    this->s = model_init_square();
-    this->pos.x = 300;
-    this->pos.y = 100;
-    this->nmbrs = gl_load_charset("res/OpenSans-Bold.ttf", 32, '0', '9');
-}
-
-// This is a dummy function used to determine where
-// to render the appropriate locations for the fretboard
-void fretboard_draw(fretboard_rend_t *this)
-{
-    int xval = 33; // Offset for each note
-    int yval = 20;
-    v2 fsize = { 180, 120 }; // Total size of render
-    v2 nsize = { 18, 18 }; // Size of each Fret Note
-    v2 soff = { 16, 2 }; // The start point offset when rendering
-
-    // Render the Base Fretboard
-    glBindTexture(GL_TEXTURE_2D, this->ftex);
-    square_draw(this->pos.x, this->pos.y, fsize.x, fsize.y, COLOR_INIT(255,255,255,255));
-
-    // Render the Finger Holdings
-    glBindTexture(GL_TEXTURE_2D, this->utex);
-
-    for(int i=0; i<5; i++) {
-        for(int j=0; j<6; j++) {
-            circle_draw(this->pos.x + soff.x + (i*xval),
-                        this->pos.y + soff.y + (j*yval),
-                        nsize.x, nsize.y, COLOR_INIT(255,0,255,200));
-        }
-    }
-
-    // Render the Fret Position
-    gl_char_t c;
-
-    c = charset_get_char(&this->nmbrs, '1');
-    glBindTexture(GL_TEXTURE_2D, c.tid);
-    square_draw(this->pos.x-25, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
-
-    // In Case of a Second Number
-    c = charset_get_char(&this->nmbrs, '2');
-    glBindTexture(GL_TEXTURE_2D, c.tid);
-    square_draw(this->pos.x-10, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+    //printf("Open D Chord\n");
+    //fretboard_print_cli(f);
+    fretboard_render(frend, f, 0);
 }
 
 int main(void)
@@ -291,11 +423,12 @@ int main(void)
     fretboard_rend_t f;
     fretboard_init(&f);
 
-    fretboard_test_C();
-    fretboard_test_A();
+    /*
+      fretboard_test_A();
     fretboard_test_G();
     fretboard_test_E();
     fretboard_test_D();
+    */
 
     while(s.close == false)
     {
@@ -303,7 +436,7 @@ int main(void)
         uisys_update(&uisys);
 
         // --- ENTER RENDER LOGIC HERE ---
-        fretboard_draw(&f);
+        fretboard_test_D(&f);
 
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         screen_swap_buffer(&s);
