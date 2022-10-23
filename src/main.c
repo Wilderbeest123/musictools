@@ -251,6 +251,18 @@ void fretboard_rend_test(fretboard_rend_t *this)
     glBindTexture(GL_TEXTURE_2D, this->ftex);
     square_draw(this->pos.x, this->pos.y, this->rsize.x, this->rsize.y, COLOR_INIT(255,255,255,255));
 
+    // Render the 'Open' Fret Positions
+    for(int i=0; i<6; i++) {
+        pos.x = this->pos.x - 10;
+        pos.y = this->pos.y + this->nstoff.y + (i*this->nval.y);
+
+        pos.x += this->nrendoff.x;
+        pos.y += this->nrendoff.y;
+
+        n = fretboard_note_played(std_tuning, i, 0);
+        keys_render_note(this->nrend, n, SCALE_FLAT, pos, COLOR_INIT(0,0,0,255));
+    }
+
     // Render the Finger Holdings
     glBindTexture(GL_TEXTURE_2D, this->utex);
 
@@ -263,8 +275,8 @@ void fretboard_rend_test(fretboard_rend_t *this)
             circle_draw(pos.x, pos.y,
                         this->nsize.x, this->nsize.y, COLOR_INIT(255,0,255,200));
 
-            pos.y += this->nrendoff.y;
             pos.x += this->nrendoff.x;
+            pos.y += this->nrendoff.y;
 
             // Render what note is being played
             n = fretboard_note_played(std_tuning, j, i+1);
@@ -272,15 +284,24 @@ void fretboard_rend_test(fretboard_rend_t *this)
         }
     }
 
-    // Render the Fret Position
-    c = charset_get_char(&this->nmbrs, '1');
-    glBindTexture(GL_TEXTURE_2D, c.tid);
-    square_draw(this->pos.x-25, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
 
-    // In Case of a Second Number
-    c = charset_get_char(&this->nmbrs, '2');
+    // This is for rendering 'one' number
+    c = charset_get_char(&this->nmbrs, '0');
     glBindTexture(GL_TEXTURE_2D, c.tid);
-    square_draw(this->pos.x-10, this->pos.y + 95, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+    square_draw(this->pos.x-10, this->pos.y + 110, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+
+    // This is for rendering 'two' numbers
+    if(0) {
+        // Render the Fret Position
+        c = charset_get_char(&this->nmbrs, '1');
+        glBindTexture(GL_TEXTURE_2D, c.tid);
+        square_draw(this->pos.x-20, this->pos.y + 110, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+
+        // In Case of a Second Number
+        c = charset_get_char(&this->nmbrs, '2');
+        glBindTexture(GL_TEXTURE_2D, c.tid);
+        square_draw(this->pos.x-5, this->pos.y + 110, c.size.x, c.size.y, COLOR_INIT(0,0,0,255));
+    }
 
     // Render the place you Bar the Chord
     glBindTexture(GL_TEXTURE_2D, this->utex);
