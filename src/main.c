@@ -198,6 +198,9 @@ typedef struct {
     v2 nstoff; // Start point Render offset
     v2 nval; // Seperation values between each Rendered Note
 
+    v2 nrendoff; // The Note Render Offset relative to the Note Drawn
+    render_notes_t nrend; // Data for rendering notes
+
 } fretboard_rend_t;
 
 void fretboard_init(fretboard_rend_t *this)
@@ -214,6 +217,26 @@ void fretboard_init(fretboard_rend_t *this)
     this->nsize = V2(18, 18);
     this->nstoff = V2(16, 2);
     this->nval = V2(33, 20);
+
+    this->nrendoff = V2(2,-4);
+    this->nrend = render_notes_init(18);
+}
+
+//-------------------------
+// fretboard_rend_finger_note - Render the Note being played on
+// top of the fretboard pressed note
+//-------------------------
+keys_note_t fretboard_note_played(fretboard_tune_t t, uint8_t strid, uint8_t fret_pressed) {
+    uint8_t start_note;
+    keys_note_t note_played;
+
+    start_note = *((uint8_t*)(&t.str1+strid));
+    note_played = start_note + fret_pressed;
+
+    if(note_played >= NOTE_OCTAVE)
+        note_played = note_played - NOTE_OCTAVE;
+
+    return note_played;
 }
 
 // This is a test function used to determine where
@@ -221,6 +244,8 @@ void fretboard_init(fretboard_rend_t *this)
 void fretboard_rend_test(fretboard_rend_t *this)
 {
     gl_char_t c;
+    keys_note_t n;
+    v2 pos;
 
     // Render the Base Fretboard
     glBindTexture(GL_TEXTURE_2D, this->ftex);
@@ -231,9 +256,19 @@ void fretboard_rend_test(fretboard_rend_t *this)
 
     for(int i=0; i<5; i++) {
         for(int j=0; j<6; j++) {
-            circle_draw(this->pos.x + this->nstoff.x + (i*this->nval.x),
-                        this->pos.y + this->nstoff.y + (j*this->nval.y),
+            pos.x = this->pos.x + this->nstoff.x + (i*this->nval.x);
+            pos.y = this->pos.y + this->nstoff.y + (j*this->nval.y);
+
+            glBindTexture(GL_TEXTURE_2D, this->utex);
+            circle_draw(pos.x, pos.y,
                         this->nsize.x, this->nsize.y, COLOR_INIT(255,0,255,200));
+
+            pos.y += this->nrendoff.y;
+            pos.x += this->nrendoff.x;
+
+            // Render what note is being played
+            n = fretboard_note_played(std_tuning, j, i+1);
+            keys_render_note(this->nrend, n, SCALE_FLAT, pos, COLOR_INIT(0,0,0,255));
         }
     }
 
@@ -430,20 +465,14 @@ int main(void)
     fretboard_rend_t f;
     fretboard_init(&f);
 
-    /*
-      fretboard_test_A();
-    fretboard_test_G();
-    fretboard_test_E();
-    fretboard_test_D();
-    */
-
     while(s.close == false)
     {
         input_update(&in);
         uisys_update(&uisys);
 
         // --- ENTER RENDER LOGIC HERE ---
-        fretboard_test_C(&f);
+        //fretboard_test_C(&f);
+        fretboard_rend_test(&f);
 
         model_uniform_color(COLOR_INIT(255, 0, 127, 255));
         screen_swap_buffer(&s);

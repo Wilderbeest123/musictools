@@ -108,7 +108,7 @@ static bool keys_is_black(int note)
     }
 }
 
-static v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
+v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col)
 {
     gl_char_t c;
     bool is_black;

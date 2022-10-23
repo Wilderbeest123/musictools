@@ -70,6 +70,8 @@ uint16_t keys_get_note_mask(uint8_t* data, int num);
 v2 keys_render_size(uint8_t *buf, int bsize,
                     keys_scale_t scale, render_notes_t *r);
 
+v2 keys_render_note(render_notes_t r, int note, keys_scale_t scale, v2 pos, gl_color_t col);
+
 void keys_render_notes(v2 pos, uint8_t *buf, int bsize,
                        keys_scale_t scale, render_notes_t *r);
 
